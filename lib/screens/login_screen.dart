@@ -61,6 +61,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFFBFBFE), // --background
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
@@ -72,12 +73,18 @@ class _LoginScreenState extends State<LoginScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
+                    Icon(
+                      Icons.directions_bus_rounded,
+                      size: 80,
+                      color: const Color(0xFF2F27CE), // --primary
+                    ),
+                    const SizedBox(height: 16),
                     const Text(
                       'Bus Management',
                       style: TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
-                        color: Colors.blue,
+                        color: Color(0xFF2F27CE), // --primary
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -86,19 +93,34 @@ class _LoginScreenState extends State<LoginScreen> {
                       'Sign in to your account',
                       style: TextStyle(
                         fontSize: 16,
-                        color: Colors.grey,
+                        color: Color(0xFF050315), // --text
+                        fontWeight: FontWeight.w300,
                       ),
                       textAlign: TextAlign.center,
                     ),
-                    const SizedBox(height: 32),
+                    const SizedBox(height: 40),
                     
                     // Email field
                     TextFormField(
                       controller: _emailController,
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         labelText: 'Email',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.email),
+                        labelStyle: const TextStyle(color: Color(0xFF2F27CE)), // --primary
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(color: Color(0xFFDEDCFF)), // --secondary
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(color: Color(0xFFDEDCFF)), // --secondary
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(color: Color(0xFF2F27CE), width: 2), // --primary
+                        ),
+                        prefixIcon: const Icon(Icons.email, color: Color(0xFF2F27CE)), // --primary
+                        filled: true,
+                        fillColor: Colors.white,
                       ),
                       keyboardType: TextInputType.emailAddress,
                       validator: (value) {
@@ -113,10 +135,24 @@ class _LoginScreenState extends State<LoginScreen> {
                     // Password field
                     TextFormField(
                       controller: _passwordController,
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         labelText: 'Password',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.lock),
+                        labelStyle: const TextStyle(color: Color(0xFF2F27CE)), // --primary
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(color: Color(0xFFDEDCFF)), // --secondary
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(color: Color(0xFFDEDCFF)), // --secondary
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(color: Color(0xFF2F27CE), width: 2), // --primary
+                        ),
+                        prefixIcon: const Icon(Icons.lock, color: Color(0xFF2F27CE)), // --primary
+                        filled: true,
+                        fillColor: Colors.white,
                       ),
                       obscureText: true,
                       validator: (value) {
@@ -131,8 +167,12 @@ class _LoginScreenState extends State<LoginScreen> {
                     // Error message
                     if (_errorMessage != null)
                       Container(
-                        padding: const EdgeInsets.all(8),
-                        color: Colors.red.shade100,
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.red.shade50,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.red.shade200),
+                        ),
                         child: Text(
                           _errorMessage!,
                           style: TextStyle(color: Colors.red.shade800),
@@ -146,33 +186,63 @@ class _LoginScreenState extends State<LoginScreen> {
                       onPressed: _isLoading ? null : _signIn,
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 16),
-                        backgroundColor: Colors.blue,
+                        backgroundColor: const Color(0xFF433BFF), // --accent
                         foregroundColor: Colors.white,
+                        elevation: 3,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        shadowColor: const Color(0xFF433BFF).withOpacity(0.5),
                       ),
                       child: _isLoading
                           ? const SizedBox(
-                              height: 20,
-                              width: 20,
+                              height: 24,
+                              width: 24,
                               child: CircularProgressIndicator(
                                 color: Colors.white,
                                 strokeWidth: 2,
                               ),
                             )
-                          : const Text('Login'),
+                          : const Text(
+                              'Login',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 20),
                     
                     // Register link
-                    TextButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const RegisterScreen(),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text(
+                          "Don't have an account?",
+                          style: TextStyle(
+                            color: Color(0xFF050315), // --text
                           ),
-                        );
-                      },
-                      child: const Text('Don\'t have an account? Register'),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const RegisterScreen(),
+                              ),
+                            );
+                          },
+                          style: TextButton.styleFrom(
+                            foregroundColor: Color(0xFF2F27CE), // --primary
+                          ),
+                          child: const Text(
+                            'Register',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
