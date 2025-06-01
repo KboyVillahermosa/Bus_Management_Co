@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:bus_management/config/supabase_config.dart';
 import 'package:bus_management/screens/login_screen.dart';
+import 'package:bus_management/screens/profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -80,6 +81,15 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         title: const Text('Bus Management'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.account_circle),
+            tooltip: 'Profile',
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (context) => const ProfileScreen()),
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.logout),
             tooltip: 'Logout',
