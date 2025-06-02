@@ -49,9 +49,9 @@ class SupabaseService {
       _initialized = true;
       print('Supabase initialized successfully');
       
-      // Verify the connection by making a simple request
-      await _client.from('_dummy_').select().limit(1).maybeSingle();
-      print('Supabase connection verified');
+      // REMOVE THIS PROBLEMATIC CHECK - it's causing a 404 error
+      // await _client.from('_dummy_').select().limit(1).maybeSingle();
+      // print('Supabase connection verified');
     } catch (e) {
       print('Supabase initialization error: $e');
       _initialized = false;
