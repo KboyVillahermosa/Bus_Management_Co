@@ -88,13 +88,13 @@ class _PermitDetailScreenState extends State<PermitDetailScreen> {
       
       final response = await supabase
           .storage
-          .from('permits') // Changed from bus_permits to bus-permits
+          .from('permits')  // This can stay as 'permits' since it's a storage bucket name
           .upload(fileName, _selectedFile!);
       
       // Get public URL
       final publicUrl = supabase
           .storage
-          .from('permits') // Changed from bus_permits to bus-permits
+          .from('permits')
           .getPublicUrl(fileName);
       
       return publicUrl;
@@ -136,12 +136,12 @@ class _PermitDetailScreenState extends State<PermitDetailScreen> {
       
       if (widget.isEditing) {
         await supabase
-            .from('permits')
+            .from('bus_permits')  // Changed from permits to bus_permits
             .update(permitData)
             .eq('id', widget.permitData!['id']);
       } else {
         await supabase
-            .from('permits')
+            .from('bus_permits')  // Changed from permits to bus_permits
             .insert(permitData);
       }
       

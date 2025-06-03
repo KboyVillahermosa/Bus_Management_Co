@@ -48,10 +48,16 @@ class _BusDetailScreenState extends State<BusDetailScreen> {
         _acquisitionDate = DateTime.parse(widget.busData!['acquisition_date']);
       }
       
-      _loadPermits();
+      // Use Future.microtask to ensure setState happens after build
+      Future.microtask(() {
+        if (mounted) {
+          setState(() {
+            _isLoadingPermits = true;
+          });
+          _loadPermits();
+        }
+      });
     }
-    
-    _fetchPermits();
   }
 
   @override
@@ -64,13 +70,15 @@ class _BusDetailScreenState extends State<BusDetailScreen> {
     super.dispose();
   }
 
+  // Update _loadPermits to have a minimum display time for the loading indicator
   Future<void> _loadPermits() async {
     if (!widget.isEditing || widget.busData == null) return;
     
     try {
-      setState(() {
-        _isLoadingPermits = true;
-      });
+      // Create a timer to ensure loading shows for at least 1 second
+      final loadingStart = DateTime.now();
+      
+      print('Loading permits for bus ID: ${widget.busData!['id']}');
       
       final data = await supabase
           .from('bus_permits')
@@ -78,42 +86,27 @@ class _BusDetailScreenState extends State<BusDetailScreen> {
           .eq('bus_id', widget.busData!['id'])
           .order('expiration_date', ascending: true);
       
-      setState(() {
-        _permits = List<Map<String, dynamic>>.from(data);
-        _isLoadingPermits = false;
-      });
+      print('Loaded ${data.length} permits');
+      
+      // Ensure loading indicator shows for at least 800ms for better UX
+      final loadingElapsed = DateTime.now().difference(loadingStart).inMilliseconds;
+      if (loadingElapsed < 800) {
+        await Future.delayed(Duration(milliseconds: 800 - loadingElapsed));
+      }
+      
+      if (mounted) {
+        setState(() {
+          _permits = List<Map<String, dynamic>>.from(data);
+          _isLoadingPermits = false;
+        });
+      }
     } catch (e) {
       print('Error loading permits: $e');
-      setState(() {
-        _isLoadingPermits = false;
-      });
-    }
-  }
-
-  Future<void> _fetchPermits() async {
-    setState(() {
-      _isLoading = true;
-    });
-    
-    try {
-      final response = await supabase
-          .from('permits')
-          .select('*')
-          .eq('bus_id', widget.busData!['id'])
-          .order('expiration_date');
-      
-      print('Fetched permits: ${response.length}');
-      
-      setState(() {
-        _permits = response;
-        _isLoading = false;
-      });
-    } catch (e) {
-      print('Error fetching permits: $e');
-      setState(() {
-        _isLoading = false;
-        // _error = 'Failed to load permits: $e'; // Uncomment if you have an error handling mechanism
-      });
+      if (mounted) {
+        setState(() {
+          _isLoadingPermits = false;
+        });
+      }
     }
   }
 
@@ -471,8 +464,35 @@ class _BusDetailScreenState extends State<BusDetailScreen> {
                     ),
                     const SizedBox(height: 16),
                     
+                    // Enhanced loading indicator
                     _isLoadingPermits
-                        ? const Center(child: CircularProgressIndicator(color: Color(0xFF2F27CE)))
+                        ? Center(  // Added Center widget here
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 24),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center, // Center vertically
+                                children: [
+                                  const SizedBox(
+                                    width: 40, 
+                                    height: 40, 
+                                    child: CircularProgressIndicator(
+                                      color: Color(0xFF2F27CE),
+                                      strokeWidth: 3,
+                                    )
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Text(
+                                    "Loading permit data...",
+                                    style: TextStyle(
+                                      color: Colors.grey[600],
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                    textAlign: TextAlign.center, // Ensure text is centered
+                                  ),
+                                ],
+                              ),
+                            ),
+                          )
                         : _permits.isEmpty
                             ? Center(
                                 child: Padding(

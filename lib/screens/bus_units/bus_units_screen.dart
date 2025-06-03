@@ -328,6 +328,13 @@ class _BusUnitsScreenState extends State<BusUnitsScreen> {
                     ),
                   ),
                   _buildStatusBadge(bus['status']),
+                  IconButton(
+                    icon: const Icon(Icons.more_vert),
+                    tooltip: 'More options',
+                    onPressed: () {
+                      _showBusOptions(context, bus);
+                    },
+                  ),
                 ],
               ),
             ),
@@ -354,6 +361,99 @@ class _BusUnitsScreenState extends State<BusUnitsScreen> {
         ),
       ),
     );
+  }
+
+  // Add this method for showing the popup menu
+  void _showBusOptions(BuildContext context, Map<String, dynamic> bus) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 16.0),
+                child: Text(
+                  "Bus Options",
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                  ),
+                ),
+              ),
+              ListTile(
+                leading: const Icon(Icons.delete_outline, color: Colors.red),
+                title: const Text('Delete Bus'),
+                onTap: () {
+                  Navigator.pop(context); // Close bottom sheet
+                  _deleteBus(bus);
+                },
+              ),
+              const SizedBox(height: 8),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  // Add this method to handle bus deletion
+  Future<void> _deleteBus(Map<String, dynamic> bus) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Bus?'),
+        content: Text(
+          'Are you sure you want to delete bus ${bus['plate_number']}? This action cannot be undone and will delete all associated permits.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+    
+    if (confirmed != true) return;
+    
+    try {
+      setState(() {
+        _isLoading = true;
+      });
+      
+      // Delete the bus unit
+      await supabase
+          .from('bus_units')
+          .delete()
+          .eq('id', bus['id']);
+      
+      // Reload the list
+      _loadBusUnits();
+    } catch (e) {
+      print('Error deleting bus: $e');
+      
+      if (!mounted) return;
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error deleting bus: $e')),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
   }
 
   Widget _buildStatusBadge(dynamic status) {
