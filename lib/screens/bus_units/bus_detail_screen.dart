@@ -50,6 +50,8 @@ class _BusDetailScreenState extends State<BusDetailScreen> {
       
       _loadPermits();
     }
+    
+    _fetchPermits();
   }
 
   @override
@@ -84,6 +86,33 @@ class _BusDetailScreenState extends State<BusDetailScreen> {
       print('Error loading permits: $e');
       setState(() {
         _isLoadingPermits = false;
+      });
+    }
+  }
+
+  Future<void> _fetchPermits() async {
+    setState(() {
+      _isLoading = true;
+    });
+    
+    try {
+      final response = await supabase
+          .from('permits')
+          .select('*')
+          .eq('bus_id', widget.busData!['id'])
+          .order('expiration_date');
+      
+      print('Fetched permits: ${response.length}');
+      
+      setState(() {
+        _permits = response;
+        _isLoading = false;
+      });
+    } catch (e) {
+      print('Error fetching permits: $e');
+      setState(() {
+        _isLoading = false;
+        // _error = 'Failed to load permits: $e'; // Uncomment if you have an error handling mechanism
       });
     }
   }
@@ -445,9 +474,9 @@ class _BusDetailScreenState extends State<BusDetailScreen> {
                     _isLoadingPermits
                         ? const Center(child: CircularProgressIndicator(color: Color(0xFF2F27CE)))
                         : _permits.isEmpty
-                            ? const Center(
+                            ? Center(
                                 child: Padding(
-                                  padding: EdgeInsets.all(16.0),
+                                  padding: const EdgeInsets.symmetric(vertical: 24),
                                   child: Text(
                                     'No permits added yet. Add a permit to track its expiration.',
                                     textAlign: TextAlign.center,
@@ -455,10 +484,28 @@ class _BusDetailScreenState extends State<BusDetailScreen> {
                                   ),
                                 ),
                               )
-                            : Column(
-                                children: _permits
-                                    .map((permit) => _buildPermitCard(permit))
-                                    .toList(),
+                            : ListView.builder(
+                                shrinkWrap: true,
+                                physics: NeverScrollableScrollPhysics(),
+                                itemCount: _permits.length,
+                                itemBuilder: (context, index) {
+                                  final permit = _permits[index];
+                                  final isExpiring = DateTime.parse(permit['expiration_date'])
+                                      .difference(DateTime.now())
+                                      .inDays < 30;
+                                  
+                                  return ListTile(
+                                    title: Text(_getPermitTypeLabel(permit['permit_type'])),
+                                    subtitle: Text('Expires: ${DateFormat('MMM dd, yyyy').format(
+                                      DateTime.parse(permit['expiration_date'])
+                                    )}'),
+                                    trailing: Icon(
+                                      Icons.warning,
+                                      color: isExpiring ? Colors.orange : Colors.transparent,
+                                    ),
+                                    onTap: () => _editPermit(permit),
+                                  );
+                                },
                               ),
                   ],
                 ],
@@ -655,6 +702,34 @@ class _BusDetailScreenState extends State<BusDetailScreen> {
         return 'Business Permit';
       default:
         return permitType.replaceAll('_', ' ').capitalize();
+    }
+  }
+
+  String _getPermitTypeLabel(String type) {
+  switch (type) {
+    case 'ltfrb_cpc': return 'LTFRB CPC';
+    case 'lto_registration': return 'LTO Registration';
+    case 'emission_test': return 'Emission Test';
+    case 'business_permit': return 'Business Permit';
+    default: return type;
+  }
+}
+
+  void _editPermit(Map<String, dynamic> permit) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => PermitDetailScreen(
+          busId: widget.busData!['id'],
+          busPlateNumber: widget.busData!['plate_number'],
+          permitData: permit,
+          isEditing: true,
+        ),
+      ),
+    );
+    
+    if (result == true) {
+      _loadPermits();
     }
   }
 }
