@@ -4,6 +4,7 @@ import 'package:bus_management/screens/login_screen.dart';
 import 'package:bus_management/screens/profile_screen.dart';
 import 'package:bus_management/screens/bus_units/bus_units_screen.dart';
 import 'package:bus_management/screens/payroll/salary_payroll_screen.dart';
+import 'package:bus_management/screens/drivers/drivers_screen.dart';
 import 'package:intl/intl.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -37,7 +38,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _loadUserData() async {
     try {
       final userId = supabase.auth.currentUser!.id;
-      final userData = await supabase.auth.currentUser?.userMetadata;
+      final userData = supabase.auth.currentUser?.userMetadata;
       
       if (userData != null) {
         String firstName = userData['first_name'] ?? '';
@@ -395,7 +396,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           ],
                         ),
                         const SizedBox(height: 8),
-                        ..._upcomingPayouts.map((payout) => _buildPayoutItem(payout)).toList(),
+                        ..._upcomingPayouts.map((payout) => _buildPayoutItem(payout)),
                         
                         // Navigation Section - Main Features
                         const SizedBox(height: 24),
@@ -432,6 +433,16 @@ class _HomeScreenState extends State<HomeScreen> {
                               },
                             ),
                             _buildQuickAccessButton(
+                              icon: Icons.person,
+                              label: 'Drivers',
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (context) => const DriversScreen()),
+                                );
+                              },
+                            ),
+                            _buildQuickAccessButton(
                               icon: Icons.people,
                               label: 'Employees',
                               onTap: () {
@@ -443,13 +454,6 @@ class _HomeScreenState extends State<HomeScreen> {
                               label: 'Assignments',
                               onTap: () {
                                 // Navigate to Assignments page
-                              },
-                            ),
-                            _buildQuickAccessButton(
-                              icon: Icons.settings,
-                              label: 'Settings',
-                              onTap: () {
-                                // Navigate to Settings page
                               },
                             ),
                           ],
