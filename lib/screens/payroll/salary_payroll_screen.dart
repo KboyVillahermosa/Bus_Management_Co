@@ -21,6 +21,16 @@ class _SalaryPayrollScreenState extends State<SalaryPayrollScreen> {
   List<Map<String, dynamic>> _drivers = [];
   List<Map<String, dynamic>> _payrollRecords = [];
   
+  // Define consistent colors for the app
+  final Color primaryColor = const Color(0xFF2F27CE);
+  final Color secondaryColor = const Color(0xFF6C63FF);
+  final Color successColor = const Color(0xFF4CAF50);
+  final Color errorColor = const Color(0xFFE53935);
+  final Color warningColor = const Color(0xFFFFA726);
+  final Color surfaceColor = const Color(0xFFF5F7FA);
+  final Color textPrimaryColor = const Color(0xFF303030);
+  final Color textSecondaryColor = const Color(0xFF757575);
+  
   @override
   void initState() {
     super.initState();
@@ -119,9 +129,7 @@ class _SalaryPayrollScreenState extends State<SalaryPayrollScreen> {
       print('Error loading payroll data: $e');
       setState(() {
         _isLoading = false;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error loading payroll data: ${e.toString()}')),
-        );
+        _showSnackBar('Error loading payroll data: ${e.toString()}', errorColor);
       });
     }
   }
@@ -155,9 +163,7 @@ class _SalaryPayrollScreenState extends State<SalaryPayrollScreen> {
         showDialog(
           context: context,
           barrierDismissible: false,
-          builder: (context) => const Center(
-            child: CircularProgressIndicator(),
-          ),
+          builder: (context) => _buildLoadingIndicator('Generating salary...'),
         );
         
         // Save to Supabase
@@ -183,23 +189,13 @@ class _SalaryPayrollScreenState extends State<SalaryPayrollScreen> {
         
         // Show success message
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Salary generated successfully'),
-            backgroundColor: Colors.green,
-          ),
-        );
+        _showSnackBar('Salary generated successfully', successColor);
       } catch (e) {
         // Close loading dialog
         if (context.mounted) Navigator.pop(context);
         
         print('Error saving payroll record: $e');
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        _showSnackBar('Error: ${e.toString()}', errorColor);
       }
     }
   }
@@ -227,29 +223,102 @@ class _SalaryPayrollScreenState extends State<SalaryPayrollScreen> {
     
     return StatefulBuilder(
       builder: (context, setState) {
-        return AlertDialog(
-          title: Text('Generate Salary for ${driver['first_name']} ${driver['last_name']}'),
-          content: SingleChildScrollView(
+        return Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          elevation: 8,
+          child: Container(
+            width: MediaQuery.of(context).size.width * 0.9,
+            padding: const EdgeInsets.all(24),
             child: Column(
               mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text('Base Salary: ₱${NumberFormat('#,##0.00').format(driver['base_salary'])}'),
+                // Dialog Header
+                Center(
+                  child: CircleAvatar(
+                    radius: 32,
+                    backgroundColor: primaryColor.withOpacity(0.1),
+                    child: Icon(
+                      Icons.person,
+                      size: 32,
+                      color: primaryColor,
+                    ),
+                  ),
+                ),
                 const SizedBox(height: 16),
+                Text(
+                  'Generate Salary',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: primaryColor,
+                  ),
+                ),
+                Text(
+                  '${driver['first_name']} ${driver['last_name']}',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                  decoration: BoxDecoration(
+                    color: successColor.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.payment, color: successColor, size: 20),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Base Salary: ₱${NumberFormat('#,##0.00').format(driver['base_salary'])}',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: successColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
                 
                 // Pay Period
-                const Text('Pay Period:'),
-                const SizedBox(height: 8),
+                _buildDialogSectionHeader('Pay Period'),
+                const SizedBox(height: 12),
                 Row(
                   children: [
                     Expanded(
-                      child: OutlinedButton(
+                      child: OutlinedButton.icon(
+                        icon: const Icon(Icons.calendar_today, size: 16),
+                        label: Text(DateFormat('MMM d, yyyy').format(periodStart)),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
                         onPressed: () async {
                           final DateTime? picked = await showDatePicker(
                             context: context,
                             initialDate: periodStart,
                             firstDate: DateTime(now.year - 1),
                             lastDate: DateTime(now.year + 1),
+                            builder: (context, child) {
+                              return Theme(
+                                data: Theme.of(context).copyWith(
+                                  colorScheme: ColorScheme.light(
+                                    primary: primaryColor,
+                                  ),
+                                ),
+                                child: child!,
+                              );
+                            },
                           );
                           if (picked != null) {
                             setState(() {
@@ -257,21 +326,41 @@ class _SalaryPayrollScreenState extends State<SalaryPayrollScreen> {
                             });
                           }
                         },
-                        child: Text(DateFormat('MMM d, yyyy').format(periodStart)),
                       ),
                     ),
-                    const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 8.0),
-                      child: Text('to'),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                      child: Text(
+                        'to',
+                        style: TextStyle(color: textSecondaryColor),
+                      ),
                     ),
                     Expanded(
-                      child: OutlinedButton(
+                      child: OutlinedButton.icon(
+                        icon: const Icon(Icons.calendar_today, size: 16),
+                        label: Text(DateFormat('MMM d, yyyy').format(periodEnd)),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
                         onPressed: () async {
                           final DateTime? picked = await showDatePicker(
                             context: context,
                             initialDate: periodEnd,
                             firstDate: DateTime(now.year - 1),
                             lastDate: DateTime(now.year + 1),
+                            builder: (context, child) {
+                              return Theme(
+                                data: Theme.of(context).copyWith(
+                                  colorScheme: ColorScheme.light(
+                                    primary: primaryColor,
+                                  ),
+                                ),
+                                child: child!,
+                              );
+                            },
                           );
                           if (picked != null) {
                             setState(() {
@@ -279,104 +368,150 @@ class _SalaryPayrollScreenState extends State<SalaryPayrollScreen> {
                             });
                           }
                         },
-                        child: Text(DateFormat('MMM d, yyyy').format(periodEnd)),
                       ),
                     ),
                   ],
                 ),
                 
-                const SizedBox(height: 16),
-                const Text('Deductions:'),
-                const SizedBox(height: 8),
-                TextField(
-                  controller: cashAdvanceController,
-                  decoration: const InputDecoration(
-                    labelText: 'Cash Advance',
-                    prefixText: '₱',
-                    border: OutlineInputBorder(),
-                  ),
-                  keyboardType: TextInputType.number,
-                ),
-                const SizedBox(height: 8),
-                TextField(
-                  controller: sssController,
-                  decoration: const InputDecoration(
-                    labelText: 'SSS',
-                    prefixText: '₱',
-                    border: OutlineInputBorder(),
-                  ),
-                  keyboardType: TextInputType.number,
-                ),
-                const SizedBox(height: 8),
-                TextField(
-                  controller: philhealthController,
-                  decoration: const InputDecoration(
-                    labelText: 'PhilHealth',
-                    prefixText: '₱',
-                    border: OutlineInputBorder(),
-                  ),
-                  keyboardType: TextInputType.number,
-                ),
-                const SizedBox(height: 8),
-                TextField(
-                  controller: pagibigController,
-                  decoration: const InputDecoration(
-                    labelText: 'Pag-IBIG',
-                    prefixText: '₱',
-                    border: OutlineInputBorder(),
-                  ),
-                  keyboardType: TextInputType.number,
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: bonusController,
-                  decoration: const InputDecoration(
-                    labelText: 'Bonus',
-                    prefixText: '₱',
-                    border: OutlineInputBorder(),
-                  ),
-                  keyboardType: TextInputType.number,
+                const SizedBox(height: 24),
+                
+                // Deductions
+                _buildDialogSectionHeader('Deductions'),
+                const SizedBox(height: 12),
+                _buildMoneyTextField(cashAdvanceController, 'Cash Advance', Icons.money_off),
+                const SizedBox(height: 12),
+                _buildMoneyTextField(sssController, 'SSS', Icons.shield),
+                const SizedBox(height: 12),
+                _buildMoneyTextField(philhealthController, 'PhilHealth', Icons.local_hospital),
+                const SizedBox(height: 12),
+                _buildMoneyTextField(pagibigController, 'Pag-IBIG', Icons.home),
+                
+                const SizedBox(height: 24),
+                
+                // Bonuses
+                _buildDialogSectionHeader('Bonuses'),
+                const SizedBox(height: 12),
+                _buildMoneyTextField(bonusController, 'Bonus Amount', Icons.star),
+                
+                const SizedBox(height: 32),
+                
+                // Buttons
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () => Navigator.pop(context),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: const Text('Cancel'),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: primaryColor,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        onPressed: () {
+                          // Validate inputs
+                          if (periodEnd.isBefore(periodStart)) {
+                            _showSnackBar('End date cannot be before start date', errorColor);
+                            return;
+                          }
+                          
+                          try {
+                            // Validate number inputs
+                            double.parse(cashAdvanceController.text);
+                            double.parse(sssController.text);
+                            double.parse(philhealthController.text);
+                            double.parse(pagibigController.text);
+                            double.parse(bonusController.text);
+                            
+                            // Return values
+                            Navigator.pop(context, {
+                              'cash_advance': double.parse(cashAdvanceController.text),
+                              'sss': double.parse(sssController.text),
+                              'philhealth': double.parse(philhealthController.text),
+                              'pagibig': double.parse(pagibigController.text),
+                              'bonus': double.parse(bonusController.text),
+                              'period_start': periodStart,
+                              'period_end': periodEnd,
+                            });
+                          } catch (e) {
+                            _showSnackBar('Please enter valid numbers for all fields', errorColor);
+                          }
+                        },
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.savings, size: 20),
+                            const SizedBox(width: 8),
+                            const Text('Generate Salary'),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF2F27CE),
-              ),
-              onPressed: () {
-                // Validate inputs
-                if (periodEnd.isBefore(periodStart)) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('End date cannot be before start date'),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-                  return;
-                }
-                
-                // Return values
-                Navigator.pop(context, {
-                  'cash_advance': double.tryParse(cashAdvanceController.text) ?? 0.0,
-                  'sss': double.tryParse(sssController.text) ?? 0.0,
-                  'philhealth': double.tryParse(philhealthController.text) ?? 0.0,
-                  'pagibig': double.tryParse(pagibigController.text) ?? 0.0,
-                  'bonus': double.tryParse(bonusController.text) ?? 0.0,
-                  'period_start': periodStart,
-                  'period_end': periodEnd,
-                });
-              },
-              child: const Text('Generate'),
-            ),
-          ],
         );
       }
+    );
+  }
+  
+  Widget _buildDialogSectionHeader(String title) {
+    return Row(
+      children: [
+        Text(
+          title,
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: textPrimaryColor,
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Divider(color: Colors.grey.shade300),
+        ),
+      ],
+    );
+  }
+  
+  Widget _buildMoneyTextField(
+    TextEditingController controller, 
+    String label, 
+    IconData icon,
+  ) {
+    return TextFormField(
+      controller: controller,
+      decoration: InputDecoration(
+        labelText: label,
+        prefixIcon: Icon(icon, color: primaryColor),
+        prefixText: '₱',
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: Colors.grey.shade300),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: primaryColor, width: 2),
+        ),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      ),
+      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+      style: const TextStyle(fontSize: 16),
     );
   }
   
@@ -386,9 +521,7 @@ class _SalaryPayrollScreenState extends State<SalaryPayrollScreen> {
       showDialog(
         context: context,
         barrierDismissible: false,
-        builder: (context) => const Center(
-          child: CircularProgressIndicator(),
-        ),
+        builder: (context) => _buildLoadingIndicator('Exporting payslip...'),
       );
       
       // Create PDF document
@@ -564,12 +697,11 @@ class _SalaryPayrollScreenState extends State<SalaryPayrollScreen> {
                 ),
                 
                 // Footer with date and time
-                pw.Positioned(
-                  bottom: 20,
-                  right: 20,
+                pw.SizedBox(height: 40),
+                pw.Center(
                   child: pw.Text(
-                    'Generated on: ${DateFormat('MMM dd, yyyy hh:mm a').format(DateTime.now())}',
-                    style: const pw.TextStyle(fontSize: 8, color: PdfColor(0.5, 0.5, 0.5)),
+                    'Generated on: ${DateFormat('MMMM dd, yyyy hh:mm a').format(DateTime.now())}',
+                    style: const pw.TextStyle(fontSize: 10, color: PdfColor(0.5, 0.5, 0.5)),
                   ),
                 ),
               ],
@@ -587,55 +719,27 @@ class _SalaryPayrollScreenState extends State<SalaryPayrollScreen> {
       // Close loading dialog
       if (context.mounted) Navigator.pop(context);
       
-      // Modified section: Safer file opening with error handling
+      // Try to open the file
       try {
-        // Try to open the file
         final result = await OpenFilex.open(file.path);
         
         if (result.type != ResultType.done) {
           // If file couldn't be opened automatically, show a message with the file path
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text('PDF saved but could not be opened automatically.'),
-                  Text('Location: ${file.path}', style: const TextStyle(fontSize: 12)),
-                ],
-              ),
-              backgroundColor: Colors.orange,
-              duration: const Duration(seconds: 10),
-              action: SnackBarAction(
-                label: 'DISMISS',
-                onPressed: () {},
-              ),
-            ),
+          _showSnackBar(
+            'PDF saved but could not be opened automatically.\nLocation: ${file.path}', 
+            warningColor,
+            duration: const Duration(seconds: 10),
           );
         } else {
           // Success message
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Payslip exported successfully'),
-              backgroundColor: Colors.green,
-            ),
-          );
+          _showSnackBar('Payslip exported successfully', successColor);
         }
       } catch (e) {
         // Fall back to just showing the file path
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text('PDF generated successfully but cannot be opened automatically'),
-                Text('Location: ${file.path}', style: const TextStyle(fontSize: 12)),
-              ],
-            ),
-            backgroundColor: Colors.orange,
-            duration: const Duration(seconds: 10),
-          ),
+        _showSnackBar(
+          'PDF generated successfully but cannot be opened automatically.\nLocation: ${file.path}', 
+          warningColor,
+          duration: const Duration(seconds: 10),
         );
       }
     } catch (e) {
@@ -643,12 +747,7 @@ class _SalaryPayrollScreenState extends State<SalaryPayrollScreen> {
       if (context.mounted) Navigator.pop(context);
       
       print('Error exporting payslip: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error exporting payslip: ${e.toString()}'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      _showSnackBar('Error exporting payslip: ${e.toString()}', errorColor);
     }
   }
   
@@ -662,6 +761,27 @@ class _SalaryPayrollScreenState extends State<SalaryPayrollScreen> {
           pw.Text('₱${NumberFormat('#,##0.00').format(amount)}', 
             style: isBold ? pw.TextStyle(fontWeight: pw.FontWeight.bold) : null),
         ],
+      ),
+    );
+  }
+  
+  Widget _buildLoadingIndicator(String message) {
+    return Dialog(
+      backgroundColor: Colors.white,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CircularProgressIndicator(color: primaryColor),
+            const SizedBox(height: 24),
+            Text(
+              message,
+              style: const TextStyle(fontSize: 16),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -683,9 +803,7 @@ class _SalaryPayrollScreenState extends State<SalaryPayrollScreen> {
       showDialog(
         context: context,
         barrierDismissible: false,
-        builder: (context) => const Center(
-          child: CircularProgressIndicator(),
-        ),
+        builder: (context) => _buildLoadingIndicator('Updating payment status...'),
       );
       
       // Update in Supabase
@@ -706,24 +824,45 @@ class _SalaryPayrollScreenState extends State<SalaryPayrollScreen> {
         record['payment_date'] = paymentDate;
       });
       
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Payment status updated to $newStatus'),
-          backgroundColor: Colors.green,
-        ),
+      _showSnackBar(
+        'Payment status updated to $newStatus',
+        newStatus == 'Paid' ? successColor : warningColor,
       );
     } catch (e) {
       // Close loading dialog
       if (context.mounted) Navigator.pop(context);
       
       print('Error updating payment status: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error updating payment status: ${e.toString()}'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      _showSnackBar('Error updating payment status: ${e.toString()}', errorColor);
     }
+  }
+  
+  void _showSnackBar(String message, Color backgroundColor, {Duration? duration}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          message,
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        backgroundColor: backgroundColor,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+        margin: const EdgeInsets.all(16),
+        duration: duration ?? const Duration(seconds: 4),
+        action: SnackBarAction(
+          label: 'DISMISS',
+          textColor: Colors.white,
+          onPressed: () {
+            ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          },
+        ),
+      ),
+    );
   }
   
   @override
@@ -731,33 +870,47 @@ class _SalaryPayrollScreenState extends State<SalaryPayrollScreen> {
     return DefaultTabController(
       length: 2,
       child: Scaffold(
+        backgroundColor: surfaceColor,
         appBar: AppBar(
+          elevation: 0,
           title: const Text(
             'Salary & Payroll',
             style: TextStyle(
               color: Colors.white,
-              fontWeight: FontWeight.w500,
+              fontWeight: FontWeight.w600,
+              fontSize: 20,
             ),
           ),
-          backgroundColor: const Color(0xFF2F27CE),
+          backgroundColor: primaryColor,
           actions: [
             IconButton(
               icon: const Icon(Icons.refresh, color: Colors.white),
+              tooltip: 'Refresh Data',
               onPressed: () {
                 _loadDrivers();
                 _loadPayrollData();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Refreshing data...')),
-                );
+                _showSnackBar('Refreshing data...', primaryColor);
               },
             ),
           ],
-          bottom: const TabBar(
+          bottom: TabBar(
             indicatorColor: Colors.white,
+            indicatorWeight: 3,
             labelColor: Colors.white,
-            tabs: [
-              Tab(text: 'Generate Salary'),
-              Tab(text: 'Payroll History'),
+            labelStyle: const TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: 16,
+            ),
+            unselectedLabelColor: Colors.white.withOpacity(0.7),
+            tabs: const [
+              Tab(
+                icon: Icon(Icons.person),
+                text: 'Generate Salary',
+              ),
+              Tab(
+                icon: Icon(Icons.history),
+                text: 'Payroll History',
+              ),
             ],
           ),
         ),
@@ -765,23 +918,43 @@ class _SalaryPayrollScreenState extends State<SalaryPayrollScreen> {
           children: [
             // Generate Salary Tab
             _isLoading
-                ? const Center(child: CircularProgressIndicator())
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        CircularProgressIndicator(color: primaryColor),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Loading drivers...',
+                          style: TextStyle(color: textSecondaryColor),
+                        ),
+                      ],
+                    ),
+                  )
                 : _hasError
                     ? Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(Icons.error_outline, size: 48, color: Colors.red),
+                            Icon(Icons.error_outline, size: 64, color: errorColor),
                             const SizedBox(height: 16),
                             Text(
                               _errorMessage,
                               textAlign: TextAlign.center,
-                              style: const TextStyle(color: Colors.red),
+                              style: TextStyle(color: errorColor),
                             ),
-                            const SizedBox(height: 16),
+                            const SizedBox(height: 24),
                             ElevatedButton.icon(
                               icon: const Icon(Icons.refresh),
                               label: const Text('Retry'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: primaryColor,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
                               onPressed: _loadDrivers,
                             ),
                           ],
@@ -798,92 +971,171 @@ class _SalaryPayrollScreenState extends State<SalaryPayrollScreen> {
   }
   
   Widget _buildGenerateSalaryTab() {
-    return _drivers.isEmpty
-        ? Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.person_off, size: 64, color: Colors.grey),
-                const SizedBox(height: 16),
-                const Text(
-                  'No drivers found',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  'Add drivers to generate salaries',
-                  style: TextStyle(color: Colors.grey),
-                ),
-                const SizedBox(height: 24),
-                ElevatedButton.icon(
-                  icon: const Icon(Icons.refresh),
-                  label: const Text('Refresh'),
-                  onPressed: _loadDrivers,
-                ),
-              ],
+    if (_drivers.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.person_off, size: 64, color: Colors.grey.shade400),
+            const SizedBox(height: 24),
+            Text(
+              'No drivers found',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: textPrimaryColor,
+              ),
             ),
-          )
-        : RefreshIndicator(
-            onRefresh: _loadDrivers,
-            child: ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: _drivers.length,
-              itemBuilder: (context, index) {
-                final driver = _drivers[index];
-                final baseSalary = driver['base_salary'] is String 
-                    ? double.parse(driver['base_salary']) 
-                    : driver['base_salary'].toDouble();
-                
-                return Card(
-                  margin: const EdgeInsets.only(bottom: 12),
-                  elevation: 2,
-                  child: ListTile(
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    leading: CircleAvatar(
-                      backgroundColor: const Color(0xFF2F27CE),
-                      child: Text(
-                        '${driver['first_name'][0]}${driver['last_name'][0]}',
-                        style: const TextStyle(color: Colors.white),
+            const SizedBox(height: 8),
+            Text(
+              'Add drivers to generate salaries',
+              style: TextStyle(color: textSecondaryColor, fontSize: 16),
+            ),
+            const SizedBox(height: 32),
+            ElevatedButton.icon(
+              icon: const Icon(Icons.refresh),
+              label: const Text('Refresh'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: primaryColor,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              onPressed: _loadDrivers,
+            ),
+          ],
+        ),
+      );
+    }
+    
+    return RefreshIndicator(
+      onRefresh: _loadDrivers,
+      color: primaryColor,
+      child: ListView.builder(
+        padding: const EdgeInsets.all(16),
+        itemCount: _drivers.length,
+        itemBuilder: (context, index) {
+          final driver = _drivers[index];
+          final baseSalary = driver['base_salary'] is String 
+              ? double.parse(driver['base_salary']) 
+              : driver['base_salary'].toDouble();
+          
+          // Create initials for avatar
+          final initials = '${driver['first_name'][0]}${driver['last_name'][0]}';
+          
+          return Card(
+            margin: const EdgeInsets.only(bottom: 16),
+            elevation: 2,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.grey.shade200),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    // Avatar with fancy gradient background
+                    Container(
+                      width: 60,
+                      height: 60,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [primaryColor, secondaryColor],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                    ),
-                    title: Text(
-                      '${driver['first_name']} ${driver['last_name']}',
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    subtitle: Padding(
-                      padding: const EdgeInsets.only(top: 4),
-                      child: Text(
-                        'Base Salary: ₱${NumberFormat('#,##0.00').format(baseSalary)}',
-                        style: const TextStyle(color: Colors.green),
-                      ),
-                    ),
-                    trailing: ElevatedButton.icon(
-                      icon: const Text(
-                        '₱',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                      child: Center(
+                        child: Text(
+                          initials,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 22,
+                          ),
                         ),
                       ),
+                    ),
+                    const SizedBox(width: 16),
+                    
+                    // Driver info
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '${driver['first_name']} ${driver['last_name']}',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: textPrimaryColor,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: successColor.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: Text(
+                              '₱${NumberFormat('#,##0.00').format(baseSalary)}',
+                              style: TextStyle(
+                                color: successColor,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    
+                    // Generate button
+                    ElevatedButton.icon(
+                      icon: const Icon(Icons.add_circle_outline),
                       label: const Text('Generate'),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF2F27CE),
+                        backgroundColor: primaryColor,
                         foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
                       ),
                       onPressed: () => _generateSalary(driver),
                     ),
-                  ),
-                );
-              },
+                  ],
+                ),
+              ),
             ),
           );
+        },
+      ),
+    );
   }
   
   Widget _buildPayrollHistoryTab() {
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircularProgressIndicator(color: primaryColor),
+            const SizedBox(height: 16),
+            Text(
+              'Loading payroll records...',
+              style: TextStyle(color: textSecondaryColor),
+            ),
+          ],
+        ),
+      );
     }
     
     if (_payrollRecords.isEmpty) {
@@ -891,21 +1143,33 @@ class _SalaryPayrollScreenState extends State<SalaryPayrollScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.receipt_long, size: 64, color: Colors.grey),
-            const SizedBox(height: 16),
-            const Text(
+            Icon(Icons.receipt_long, size: 64, color: Colors.grey.shade400),
+            const SizedBox(height: 24),
+            Text(
               'No payroll records found',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: textPrimaryColor,
+              ),
             ),
             const SizedBox(height: 8),
-            const Text(
+            Text(
               'Generate salaries to see records here',
-              style: TextStyle(color: Colors.grey),
+              style: TextStyle(color: textSecondaryColor, fontSize: 16),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 32),
             ElevatedButton.icon(
               icon: const Icon(Icons.refresh),
               label: const Text('Refresh'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: primaryColor,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
               onPressed: _loadPayrollData,
             ),
           ],
@@ -915,110 +1179,258 @@ class _SalaryPayrollScreenState extends State<SalaryPayrollScreen> {
     
     return RefreshIndicator(
       onRefresh: _loadPayrollData,
+      color: primaryColor,
       child: ListView.builder(
         padding: const EdgeInsets.all(16),
         itemCount: _payrollRecords.length,
         itemBuilder: (context, index) {
           final record = _payrollRecords[index];
+          final isPaid = record['status'] == 'Paid';
+          
           return Card(
-            margin: const EdgeInsets.only(bottom: 16),
+            margin: const EdgeInsets.only(bottom: 20),
             elevation: 3,
+            shadowColor: Colors.black26,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-              side: BorderSide(
-                color: record['status'] == 'Paid' ? Colors.green.shade300 : Colors.grey.shade300,
-                width: 1,
-              ),
+              borderRadius: BorderRadius.circular(16),
             ),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: isPaid ? successColor.withOpacity(0.3) : Colors.grey.shade300,
+                  width: 1,
+                ),
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              record['driver_name'],
-                              style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              record['period'],
-                              style: const TextStyle(
-                                color: Colors.grey,
-                              ),
-                            ),
-                          ],
-                        ),
+                  // Header with gradient background
+                  Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: isPaid 
+                            ? [successColor.withOpacity(0.8), successColor.withOpacity(0.6)]
+                            : [primaryColor.withOpacity(0.8), secondaryColor.withOpacity(0.6)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
                       ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: record['status'] == 'Paid' ? Colors.green.shade100 : Colors.red.shade100,
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: record['status'] == 'Paid' ? Colors.green.shade400 : Colors.red.shade400,
-                          ),
-                        ),
-                        child: Text(
-                          record['status'],
-                          style: TextStyle(
-                            color: record['status'] == 'Paid' ? Colors.green.shade800 : Colors.red.shade800,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  const Divider(),
-                  _buildSalaryDetailRow('Base Salary', record['base_salary']),
-                  _buildSalaryDetailRow('Cash Advance', -record['cash_advance']),
-                  _buildSalaryDetailRow('SSS', -record['sss']),
-                  _buildSalaryDetailRow('PhilHealth', -record['philhealth']),
-                  _buildSalaryDetailRow('Pag-IBIG', -record['pagibig']),
-                  _buildSalaryDetailRow('Bonus', record['bonus']),
-                  const Divider(),
-                  _buildSalaryDetailRow('Net Salary', record['net_salary'], isBold: true),
-                  if (record['status'] == 'Paid' && record['payment_date'] != null)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 8),
-                      child: Text(
-                        'Paid on: ${DateFormat('MMM dd, yyyy').format(record['payment_date'])}',
-                        style: const TextStyle(
-                          color: Colors.grey,
-                          fontStyle: FontStyle.italic,
-                        ),
+                      borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(16),
+                        topRight: Radius.circular(16),
                       ),
                     ),
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      OutlinedButton.icon(
-                        icon: const Icon(Icons.print),
-                        label: const Text('Export Payslip'),
-                        onPressed: () => _exportPayslip(record),
-                      ),
-                      const SizedBox(width: 8),
-                      ElevatedButton.icon(
-                        icon: Icon(record['status'] == 'Paid' ? Icons.cancel : Icons.check_circle),
-                        label: Text(record['status'] == 'Paid' ? 'Mark as Unpaid' : 'Mark as Paid'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: record['status'] == 'Paid' ? Colors.red : Colors.green,
-                          foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                    child: Row(
+                      children: [
+                        CircleAvatar(
+                          backgroundColor: Colors.white,
+                          radius: 24,
+                          child: Text(
+                            record['driver_name'].split(' ')[0][0] + record['driver_name'].split(' ')[1][0],
+                            style: TextStyle(
+                              color: isPaid ? successColor : primaryColor,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                            ),
+                          ),
                         ),
-                        onPressed: () => _togglePaymentStatus(record),
-                      ),
-                    ],
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                record['driver_name'],
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                record['period'],
+                                style: TextStyle(
+                                  color: Colors.white.withOpacity(0.9),
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                isPaid ? Icons.check_circle : Icons.schedule,
+                                color: isPaid ? successColor : warningColor,
+                                size: 16,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                record['status'],
+                                style: TextStyle(
+                                  color: isPaid ? successColor : warningColor,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  
+                  // Salary details
+                  Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      children: [
+                        // Details grid with improved visual hierarchy
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade50,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.grey.shade200),
+                          ),
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            children: [
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        _buildSalaryDetailItem('Base Salary', record['base_salary'], Icons.payment),
+                                        const SizedBox(height: 12),
+                                        _buildSalaryDetailItem('Bonus', record['bonus'], Icons.star, isPositive: true),
+                                      ],
+                                    ),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  Container(
+                                    width: 1,
+                                    height: 100,
+                                    color: Colors.grey.shade300,
+                                  ),
+                                  const SizedBox(width: 16),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        _buildSalaryDetailItem('Cash Advance', -record['cash_advance'], Icons.money_off),
+                                        const SizedBox(height: 12),
+                                        _buildSalaryDetailItem('Government', 
+                                          -(record['sss'] + record['philhealth'] + record['pagibig']), 
+                                          Icons.account_balance),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const Padding(
+                                padding: EdgeInsets.symmetric(vertical: 16),
+                                child: Divider(),
+                              ),
+                              // Net salary
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    'NET SALARY:',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 18,
+                                      color: textPrimaryColor,
+                                    ),
+                                  ),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                    decoration: BoxDecoration(
+                                      color: successColor.withOpacity(0.1),
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(color: successColor.withOpacity(0.3)),
+                                    ),
+                                    child: Text(
+                                      '₱${NumberFormat('#,##0.00').format(record['net_salary'])}',
+                                      style: TextStyle(
+                                        color: successColor,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 18,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                        
+                        if (isPaid && record['payment_date'] != null)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 12),
+                            child: Row(
+                              children: [
+                                Icon(Icons.event_available, size: 16, color: textSecondaryColor),
+                                const SizedBox(width: 6),
+                                Text(
+                                  'Paid on: ${DateFormat('MMMM d, yyyy').format(record['payment_date'])}',
+                                  style: TextStyle(
+                                    color: textSecondaryColor,
+                                    fontStyle: FontStyle.italic,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        
+                        // Actions
+                        Padding(
+                          padding: const EdgeInsets.only(top: 20),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              OutlinedButton.icon(
+                                icon: const Icon(Icons.receipt),
+                                label: const Text('Export Payslip'),
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: primaryColor,
+                                  side: BorderSide(color: primaryColor),
+                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
+                                onPressed: () => _exportPayslip(record),
+                              ),
+                              const SizedBox(width: 12),
+                              ElevatedButton.icon(
+                                icon: Icon(isPaid ? Icons.cancel : Icons.check_circle),
+                                label: Text(isPaid ? 'Mark as Unpaid' : 'Mark as Paid'),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: isPaid ? errorColor : successColor,
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
+                                onPressed: () => _togglePaymentStatus(record),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -1029,32 +1441,46 @@ class _SalaryPayrollScreenState extends State<SalaryPayrollScreen> {
     );
   }
   
-  Widget _buildSalaryDetailRow(String label, double amount, {bool isBold = false}) {
+  Widget _buildSalaryDetailItem(String label, double amount, IconData icon, {bool isPositive = false}) {
     final isNegative = amount < 0;
     final displayAmount = isNegative ? -amount : amount;
+    final Color textColor = isNegative ? errorColor : (isPositive ? successColor : textPrimaryColor);
     
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            label,
-            style: TextStyle(
-              fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-              fontSize: isBold ? 16 : 14,
-            ),
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: textColor.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(8),
           ),
-          Text(
-            '${isNegative ? '-' : ''}₱${NumberFormat('#,##0.00').format(displayAmount)}',
-            style: TextStyle(
-              color: isNegative ? Colors.red : (amount > 0 && !isBold ? Colors.green : null),
-              fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-              fontSize: isBold ? 16 : 14,
-            ),
+          child: Icon(icon, color: textColor, size: 20),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  color: textSecondaryColor,
+                  fontSize: 14,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                '${isNegative ? '-' : ''}₱${NumberFormat('#,##0.00').format(displayAmount)}',
+                style: TextStyle(
+                  color: textColor,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 16,
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
