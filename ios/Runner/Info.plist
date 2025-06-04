@@ -45,5 +45,17 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>UISupportsDocumentBrowser</key>ISupportsDocumentBrowser</key>
+	<true/>
+	<key>LSSupportsOpeningDocumentsInPlace</key>	<key>LSSupportsOpeningDocumentsInPlace</key>
+
+
+
+
+
+
+</plist></dict>	<true/>	<key>UIFileSharingEnabled</key>	<true/>	<true/>
+	<key>UIFileSharingEnabled</key>
+	<true/>
 </dict>
 </plist>

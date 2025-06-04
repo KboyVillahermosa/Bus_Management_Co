@@ -3,6 +3,7 @@ import 'package:bus_management/config/supabase_config.dart';
 import 'package:bus_management/screens/login_screen.dart';
 import 'package:bus_management/screens/profile_screen.dart';
 import 'package:bus_management/screens/bus_units/bus_units_screen.dart';
+import 'package:bus_management/screens/payroll/salary_payroll_screen.dart';
 import 'package:intl/intl.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -410,6 +411,16 @@ class _HomeScreenState extends State<HomeScreen> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceAround,
                           children: [
+                            _buildQuickAccessButton(
+                              icon: Icons.payments,
+                              label: 'Salary & Payroll',
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (context) => const SalaryPayrollScreen()),
+                                );
+                              },
+                            ),
                             _buildQuickAccessButton(
                               icon: Icons.directions_bus,
                               label: 'Buses',
