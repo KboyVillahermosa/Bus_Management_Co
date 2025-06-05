@@ -77,33 +77,27 @@ class _SalaryPayrollScreenState extends State<SalaryPayrollScreen> {
     });
     
     try {
-      final response = await supabase
+      // Try a simpler approach that doesn't rely on the foreign key name
+      final payrollData = await supabase
           .from('payroll')
-          .select('''
-            id, 
-            driver_id,
-            period_start,
-            period_end, 
-            base_salary, 
-            cash_advance, 
-            sss, 
-            philhealth, 
-            pagibig, 
-            bonus, 
-            net_salary, 
-            status, 
-            payment_date,
-            drivers(first_name, last_name)
-          ''')
+          .select('*')
           .order('period_end', ascending: false);
-      
+          
+      // Fetch driver details separately
       List<Map<String, dynamic>> formattedRecords = [];
       
-      for (var record in response) {
+      for (var record in payrollData) {
+        // Get driver info with a separate query
+        final driverResponse = await supabase
+            .from('drivers')
+            .select('first_name, last_name')
+            .eq('id', record['driver_id'])
+            .single();
+        
         Map<String, dynamic> formattedRecord = {
           'id': record['id'],
           'driver_id': record['driver_id'],
-          'driver_name': '${record['drivers']['first_name']} ${record['drivers']['last_name']}',
+          'driver_name': '${driverResponse['first_name']} ${driverResponse['last_name']}',
           'period': '${DateFormat('MMM d').format(DateTime.parse(record['period_start']))} - ${DateFormat('MMM d, yyyy').format(DateTime.parse(record['period_end']))}',
           'period_start': DateTime.parse(record['period_start']),
           'period_end': DateTime.parse(record['period_end']),

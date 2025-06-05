@@ -5,6 +5,7 @@ import 'package:bus_management/screens/profile_screen.dart';
 import 'package:bus_management/screens/bus_units/bus_units_screen.dart';
 import 'package:bus_management/screens/payroll/salary_payroll_screen.dart';
 import 'package:bus_management/screens/drivers/drivers_screen.dart';
+import 'package:bus_management/screens/conductors/conductors_screen.dart';
 import 'package:intl/intl.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -409,54 +410,72 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ),
                         const SizedBox(height: 16),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                          children: [
-                            _buildQuickAccessButton(
-                              icon: Icons.payments,
-                              label: 'Salary & Payroll',
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(builder: (context) => const SalaryPayrollScreen()),
-                                );
-                              },
-                            ),
-                            _buildQuickAccessButton(
-                              icon: Icons.directions_bus,
-                              label: 'Buses',
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(builder: (context) => const BusUnitsScreen()),
-                                );
-                              },
-                            ),
-                            _buildQuickAccessButton(
-                              icon: Icons.person,
-                              label: 'Drivers',
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(builder: (context) => const DriversScreen()),
-                                );
-                              },
-                            ),
-                            _buildQuickAccessButton(
-                              icon: Icons.people,
-                              label: 'Employees',
-                              onTap: () {
-                                // Navigate to Employees page
-                              },
-                            ),
-                            _buildQuickAccessButton(
-                              icon: Icons.assignment,
-                              label: 'Assignments',
-                              onTap: () {
-                                // Navigate to Assignments page
-                              },
-                            ),
-                          ],
+                        // Improved Quick Access layout
+                        SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Row(
+                            children: [
+                              _buildQuickAccessButton(
+                                icon: Icons.payments,
+                                label: 'Salary & Payroll',
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (context) => const SalaryPayrollScreen()),
+                                  );
+                                },
+                              ),
+                              const SizedBox(width: 16),
+                              _buildQuickAccessButton(
+                                icon: Icons.directions_bus,
+                                label: 'Buses',
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (context) => const BusUnitsScreen()),
+                                  );
+                                },
+                              ),
+                              const SizedBox(width: 16),
+                              _buildQuickAccessButton(
+                                icon: Icons.person,
+                                label: 'Drivers',
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (context) => const DriversScreen()),
+                                  );
+                                },
+                              ),
+                              const SizedBox(width: 16),
+                              _buildQuickAccessButton(
+                                icon: Icons.person_add,
+                                label: 'Conductors',
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (context) => const ConductorsScreen()),
+                                  );
+                                },
+                              ),
+                              const SizedBox(width: 16),
+                              _buildQuickAccessButton(
+                                icon: Icons.people,
+                                label: 'Employees',
+                                onTap: () {
+                                  // Navigate to Employees page
+                                },
+                              ),
+                              const SizedBox(width: 16),
+                              _buildQuickAccessButton(
+                                icon: Icons.assignment,
+                                label: 'Assignments',
+                                onTap: () {
+                                  // Navigate to Assignments page
+                                },
+                              ),
+                            ],
+                          ),
                         ),
                         const SizedBox(height: 24),
                       ],
@@ -645,9 +664,13 @@ class _HomeScreenState extends State<HomeScreen> {
   }) {
     return InkWell(
       onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           Container(
+            width: 56,
+            height: 56,
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: const Color(0xFFDEDCFF),
@@ -660,12 +683,16 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           const SizedBox(height: 8),
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-              color: Color(0xFF050315),
+          SizedBox(
+            width: 70,
+            child: Text(
+              label,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: Color(0xFF050315),
+              ),
             ),
           ),
         ],

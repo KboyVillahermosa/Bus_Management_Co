@@ -19,7 +19,8 @@ class _AddEditDriverScreenState extends State<AddEditDriverScreen> {
   bool _isLoading = false;
 
   // Form fields
-  late TextEditingController _nameController;
+  late TextEditingController _firstNameController;
+  late TextEditingController _lastNameController;
   late TextEditingController _contactController;
   late TextEditingController _addressController;
   late TextEditingController _licenseController;
@@ -35,8 +36,9 @@ class _AddEditDriverScreenState extends State<AddEditDriverScreen> {
   void initState() {
     super.initState();
     
-    // Initialize controllers
-    _nameController = TextEditingController(text: widget.driver?.name ?? '');
+    // Initialize controllers with firstName and lastName instead of splitting name
+    _firstNameController = TextEditingController(text: widget.driver?.firstName ?? '');
+    _lastNameController = TextEditingController(text: widget.driver?.lastName ?? '');
     _contactController = TextEditingController(text: widget.driver?.contactNumber ?? '');
     _addressController = TextEditingController(text: widget.driver?.address ?? '');
     _licenseController = TextEditingController(text: widget.driver?.licenseNumber ?? '');
@@ -63,7 +65,8 @@ class _AddEditDriverScreenState extends State<AddEditDriverScreen> {
 
   @override
   void dispose() {
-    _nameController.dispose();
+    _firstNameController.dispose();
+    _lastNameController.dispose();
     _contactController.dispose();
     _addressController.dispose();
     _licenseController.dispose();
@@ -105,7 +108,8 @@ class _AddEditDriverScreenState extends State<AddEditDriverScreen> {
 
     try {
       final driverData = {
-        'name': _nameController.text.trim(),
+        'first_name': _firstNameController.text.trim(),  // Changed from 'name' to 'first_name'
+        'last_name': _lastNameController.text.trim(),    // Added 'last_name' 
         'contact_number': _contactController.text.trim(),
         'address': _addressController.text.trim(),
         'license_number': _licenseController.text.trim(),
@@ -122,7 +126,7 @@ class _AddEditDriverScreenState extends State<AddEditDriverScreen> {
           const SnackBar(content: Text('Driver added successfully')),
         );
       } else {
-        // Update existing driver
+        // Update existing driver 
         await _supabase
             .from('drivers')
             .update(driverData)
@@ -162,14 +166,28 @@ class _AddEditDriverScreenState extends State<AddEditDriverScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     TextFormField(
-                      controller: _nameController,
+                      controller: _firstNameController,
                       decoration: const InputDecoration(
-                        labelText: 'Driver Name *',
+                        labelText: 'First Name *',
                         border: OutlineInputBorder(),
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Please enter driver name';
+                          return 'Please enter first name';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: _lastNameController,
+                      decoration: const InputDecoration(
+                        labelText: 'Last Name *', 
+                        border: OutlineInputBorder(),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter last name';
                         }
                         return null;
                       },

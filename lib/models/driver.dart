@@ -1,6 +1,7 @@
 class Driver {
-  final String id; // Change from int to String since Supabase uses UUID
-  final String name;
+  final String id;
+  final String firstName; 
+  final String lastName;
   final String contactNumber;
   final String address;
   final String licenseNumber;
@@ -11,7 +12,8 @@ class Driver {
 
   Driver({
     required this.id,
-    required this.name,
+    required this.firstName,
+    required this.lastName,
     required this.contactNumber,
     required this.address,
     required this.licenseNumber,
@@ -21,10 +23,14 @@ class Driver {
     this.photo,
   });
 
+  // Helper property to get full name
+  String get name => '$firstName $lastName';
+
   factory Driver.fromJson(Map<String, dynamic> json) {
     return Driver(
       id: json['id'],
-      name: json['name'],
+      firstName: json['first_name'] ?? '',
+      lastName: json['last_name'] ?? '',
       contactNumber: json['contact_number'],
       address: json['address'],
       licenseNumber: json['license_number'],
@@ -33,18 +39,5 @@ class Driver {
       hireDate: DateTime.parse(json['hire_date']),
       photo: json['photo'],
     );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'name': name,
-      'contact_number': contactNumber,
-      'address': address,
-      'license_number': licenseNumber,
-      'license_expiry': licenseExpiry.toIso8601String(),
-      'base_salary': baseSalary,
-      'hire_date': hireDate.toIso8601String(),
-      'photo': photo,
-    };
   }
 }

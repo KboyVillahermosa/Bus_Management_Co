@@ -33,7 +33,7 @@ class _DriversScreenState extends State<DriversScreen> {
       final response = await _supabase
           .from('drivers')
           .select('*')
-          .order('name');
+          .order('last_name'); // Changed from 'name' to 'last_name'
 
       final List<dynamic> data = response;
       setState(() {
@@ -165,7 +165,7 @@ class _DriversScreenState extends State<DriversScreen> {
                 context: context,
                 builder: (ctx) => AlertDialog(
                   title: const Text('Confirm Delete'),
-                  content: Text('Delete ${_drivers[index].name}?'),
+                  content: Text('Delete ${_drivers[index].firstName} ${_drivers[index].lastName}?'), // Changed from name
                   actions: [
                     TextButton(
                       onPressed: () => Navigator.of(ctx).pop(false),
