@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:bus_management/config/supabase_config.dart';
 import 'package:bus_management/screens/bus_units/bus_detail_screen.dart';
 import 'package:intl/intl.dart';
+import 'package:bus_management/screens/bus_units/bus_assignment_screen.dart';
+import 'package:bus_management/screens/bus_units/bus_assignment_history_screen.dart';
+import 'package:bus_management/screens/bus_units/add_trip_log_screen.dart';
+import 'package:bus_management/screens/bus_units/bus_trip_logs_screen.dart';
 
 class BusUnitsScreen extends StatefulWidget {
   const BusUnitsScreen({super.key});
@@ -29,9 +33,7 @@ class _BusUnitsScreenState extends State<BusUnitsScreen> {
         _isLoading = true;
       });
 
-      final data = await supabase
-          .from('bus_units')
-          .select('*, bus_permits(*)');
+      final data = await supabase.from('bus_units').select('*, bus_permits(*)');
 
       setState(() {
         _busUnits = List<Map<String, dynamic>>.from(data);
@@ -73,10 +75,7 @@ class _BusUnitsScreenState extends State<BusUnitsScreen> {
       appBar: AppBar(
         title: const Text(
           'Bus Units',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w500,
-          ),
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
         ),
         backgroundColor: const Color(0xFF2F27CE),
         elevation: 0,
@@ -91,119 +90,133 @@ class _BusUnitsScreenState extends State<BusUnitsScreen> {
           ),
         ],
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: Color(0xFF2F27CE)))
-          : Column(
-              children: [
-                // Alerts Section
-                if (_alerts.isNotEmpty)
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    margin: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFFFF3DC),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: const Color(0xFFFFB648)),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Row(
-                          children: [
-                            Icon(Icons.warning_amber_rounded, color: Color(0xFFFF9800)),
-                            SizedBox(width: 8),
-                            Text(
-                              'Permit Alerts',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF050315),
+      body:
+          _isLoading
+              ? const Center(
+                child: CircularProgressIndicator(color: Color(0xFF2F27CE)),
+              )
+              : Column(
+                children: [
+                  // Alerts Section
+                  if (_alerts.isNotEmpty)
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      margin: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFF3DC),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: const Color(0xFFFFB648)),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Row(
+                            children: [
+                              Icon(
+                                Icons.warning_amber_rounded,
+                                color: Color(0xFFFF9800),
                               ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        ...List.generate(
-                          _alerts.length > 3 ? 3 : _alerts.length, 
-                          (index) => _buildAlertItem(_alerts[index])
-                        ),
-                        if (_alerts.length > 3)
-                          TextButton(
-                            onPressed: () {
-                              // Navigate to full alerts screen
-                            },
-                            style: TextButton.styleFrom(
-                              foregroundColor: const Color(0xFF2F27CE),
-                            ),
-                            child: const Text('View All Alerts'),
+                              SizedBox(width: 8),
+                              Text(
+                                'Permit Alerts',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF050315),
+                                ),
+                              ),
+                            ],
                           ),
+                          const SizedBox(height: 8),
+                          ...List.generate(
+                            _alerts.length > 3 ? 3 : _alerts.length,
+                            (index) => _buildAlertItem(_alerts[index]),
+                          ),
+                          if (_alerts.length > 3)
+                            TextButton(
+                              onPressed: () {
+                                // Navigate to full alerts screen
+                              },
+                              style: TextButton.styleFrom(
+                                foregroundColor: const Color(0xFF2F27CE),
+                              ),
+                              child: const Text('View All Alerts'),
+                            ),
+                        ],
+                      ),
+                    ),
+
+                  // Filter Options
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Row(
+                      children: [
+                        const Text(
+                          'Filter by status:',
+                          style: TextStyle(fontWeight: FontWeight.w500),
+                        ),
+                        const SizedBox(width: 16),
+                        DropdownButton<String>(
+                          value: _filterStatus,
+                          underline: Container(
+                            height: 2,
+                            color: const Color(0xFF2F27CE),
+                          ),
+                          onChanged: (String? newValue) {
+                            setState(() {
+                              _filterStatus = newValue!;
+                            });
+                          },
+                          items:
+                              <String>[
+                                'all',
+                                'active',
+                                'maintenance',
+                                'inactive',
+                              ].map<DropdownMenuItem<String>>((String value) {
+                                return DropdownMenuItem<String>(
+                                  value: value,
+                                  child: Text(
+                                    value == 'all'
+                                        ? "All"
+                                        : capitalizeStr(value),
+                                  ),
+                                );
+                              }).toList(),
+                        ),
                       ],
                     ),
                   ),
-                
-                // Filter Options
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Row(
-                    children: [
-                      const Text(
-                        'Filter by status:',
-                        style: TextStyle(fontWeight: FontWeight.w500),
-                      ),
-                      const SizedBox(width: 16),
-                      DropdownButton<String>(
-                        value: _filterStatus,
-                        underline: Container(
-                          height: 2,
-                          color: const Color(0xFF2F27CE),
-                        ),
-                        onChanged: (String? newValue) {
-                          setState(() {
-                            _filterStatus = newValue!;
-                          });
-                        },
-                        items: <String>['all', 'active', 'maintenance', 'inactive']
-                            .map<DropdownMenuItem<String>>((String value) {
-                          return DropdownMenuItem<String>(
-                            value: value,
-                            child: Text(
-                              value == 'all' ? "All" : capitalizeStr(value)
+
+                  // Bus Units List
+                  Expanded(
+                    child:
+                        _filteredBusUnits.isEmpty
+                            ? const Center(
+                              child: Text(
+                                'No bus units found. Add one to get started.',
+                              ),
+                            )
+                            : ListView.builder(
+                              padding: const EdgeInsets.all(16),
+                              itemCount: _filteredBusUnits.length,
+                              itemBuilder: (context, index) {
+                                final bus = _filteredBusUnits[index];
+                                return _buildBusCard(bus);
+                              },
                             ),
-                          );
-                        }).toList(),
-                      ),
-                    ],
                   ),
-                ),
-                
-                // Bus Units List
-                Expanded(
-                  child: _filteredBusUnits.isEmpty
-                      ? const Center(
-                          child: Text('No bus units found. Add one to get started.'),
-                        )
-                      : ListView.builder(
-                          padding: const EdgeInsets.all(16),
-                          itemCount: _filteredBusUnits.length,
-                          itemBuilder: (context, index) {
-                            final bus = _filteredBusUnits[index];
-                            return _buildBusCard(bus);
-                          },
-                        ),
-                ),
-              ],
-            ),
+                ],
+              ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
           final result = await Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => const BusDetailScreen(
-                isEditing: false,
-              ),
+              builder: (context) => const BusDetailScreen(isEditing: false),
             ),
           );
-          
+
           if (result == true) {
             _loadBusUnits();
           }
@@ -217,7 +230,7 @@ class _BusUnitsScreenState extends State<BusUnitsScreen> {
   Widget _buildAlertItem(Map<String, dynamic> alert) {
     final formatter = DateFormat('MMM dd, yyyy');
     Color statusColor;
-    
+
     switch (alert['alert_status']) {
       case 'overdue':
         statusColor = Colors.red;
@@ -228,7 +241,7 @@ class _BusUnitsScreenState extends State<BusUnitsScreen> {
       default:
         statusColor = Colors.amber;
     }
-    
+
     return Padding(
       padding: const EdgeInsets.only(top: 8.0),
       child: Row(
@@ -265,21 +278,17 @@ class _BusUnitsScreenState extends State<BusUnitsScreen> {
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       child: InkWell(
         onTap: () async {
           final result = await Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => BusDetailScreen(
-                isEditing: true,
-                busData: bus,
-              ),
+              builder:
+                  (context) => BusDetailScreen(isEditing: true, busData: bus),
             ),
           );
-          
+
           if (result == true) {
             _loadBusUnits();
           }
@@ -344,16 +353,16 @@ class _BusUnitsScreenState extends State<BusUnitsScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  _buildInfoChip(Icons.airline_seat_recline_normal, '${bus['capacity'] ?? 0} seats'),
+                  _buildInfoChip(
+                    Icons.airline_seat_recline_normal,
+                    '${bus['capacity'] ?? 0} seats',
+                  ),
                   _buildInfoChip(
                     Icons.description,
                     _getPermitStatus(bus['bus_permits'] ?? []),
                     _getPermitStatusColor(bus['bus_permits'] ?? []),
                   ),
-                  const Icon(
-                    Icons.chevron_right,
-                    color: Colors.grey,
-                  ),
+                  const Icon(Icons.chevron_right, color: Colors.grey),
                 ],
               ),
             ),
@@ -379,10 +388,7 @@ class _BusUnitsScreenState extends State<BusUnitsScreen> {
                 padding: EdgeInsets.symmetric(vertical: 16.0),
                 child: Text(
                   "Bus Options",
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 18,
-                  ),
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
                 ),
               ),
               ListTile(
@@ -390,7 +396,12 @@ class _BusUnitsScreenState extends State<BusUnitsScreen> {
                 title: const Text('Assign Driver & Conductor'),
                 onTap: () {
                   Navigator.pop(context); // Close bottom sheet
-                  _showAssignDriverDialog(bus);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => BusAssignmentScreen(bus: bus),
+                    ),
+                  );
                 },
               ),
               ListTile(
@@ -398,7 +409,13 @@ class _BusUnitsScreenState extends State<BusUnitsScreen> {
                 title: const Text('View Assignment History'),
                 onTap: () {
                   Navigator.pop(context); // Close bottom sheet
-                  _showAssignmentHistory(bus);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder:
+                          (context) => BusAssignmentHistoryScreen(bus: bus),
+                    ),
+                  );
                 },
               ),
               ListTile(
@@ -406,7 +423,12 @@ class _BusUnitsScreenState extends State<BusUnitsScreen> {
                 title: const Text('Add Trip Log'),
                 onTap: () {
                   Navigator.pop(context); // Close bottom sheet
-                  _showAddTripLogDialog(bus);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => AddTripLogScreen(bus: bus),
+                    ),
+                  );
                 },
               ),
               ListTile(
@@ -414,7 +436,12 @@ class _BusUnitsScreenState extends State<BusUnitsScreen> {
                 title: const Text('View Trip Logs'),
                 onTap: () {
                   Navigator.pop(context); // Close bottom sheet
-                  _showTripLogs(bus);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => BusTripLogsScreen(bus: bus),
+                    ),
+                  );
                 },
               ),
               ListTile(
@@ -437,48 +464,46 @@ class _BusUnitsScreenState extends State<BusUnitsScreen> {
   Future<void> _deleteBus(Map<String, dynamic> bus) async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete Bus?'),
-        content: Text(
-          'Are you sure you want to delete bus ${bus['plate_number']}? This action cannot be undone and will delete all associated permits.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Delete Bus?'),
+            content: Text(
+              'Are you sure you want to delete bus ${bus['plate_number']}? This action cannot be undone and will delete all associated permits.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                style: TextButton.styleFrom(foregroundColor: Colors.red),
+                child: const Text('Delete'),
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
     );
-    
+
     if (confirmed != true) return;
-    
+
     try {
       setState(() {
         _isLoading = true;
       });
-      
+
       // Delete the bus unit
-      await supabase
-          .from('bus_units')
-          .delete()
-          .eq('id', bus['id']);
-      
+      await supabase.from('bus_units').delete().eq('id', bus['id']);
+
       // Reload the list
       _loadBusUnits();
     } catch (e) {
       print('Error deleting bus: $e');
-      
+
       if (!mounted) return;
-      
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error deleting bus: $e')),
-      );
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error deleting bus: $e')));
     } finally {
       if (mounted) {
         setState(() {
@@ -491,10 +516,10 @@ class _BusUnitsScreenState extends State<BusUnitsScreen> {
   Widget _buildStatusBadge(dynamic status) {
     // Convert dynamic to String safely
     String statusText = status?.toString() ?? 'unknown';
-    
+
     Color backgroundColor;
     Color textColor = Colors.white;
-    
+
     switch (statusText) {
       case 'active':
         backgroundColor = Colors.green;
@@ -508,7 +533,7 @@ class _BusUnitsScreenState extends State<BusUnitsScreen> {
       default:
         backgroundColor = Colors.grey;
     }
-    
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
@@ -529,11 +554,7 @@ class _BusUnitsScreenState extends State<BusUnitsScreen> {
   Widget _buildInfoChip(IconData icon, String label, [Color? color]) {
     return Row(
       children: [
-        Icon(
-          icon,
-          size: 16,
-          color: color ?? Colors.grey[700],
-        ),
+        Icon(icon, size: 16, color: color ?? Colors.grey[700]),
         const SizedBox(width: 4),
         Text(
           label,
@@ -551,10 +572,11 @@ class _BusUnitsScreenState extends State<BusUnitsScreen> {
     if (permits.isEmpty) {
       return 'No permits';
     }
-    
+
     final expiredCount = permits.where((p) => p['status'] == 'expired').length;
-    final expiringCount = permits.where((p) => p['status'] == 'expiring_soon').length;
-    
+    final expiringCount =
+        permits.where((p) => p['status'] == 'expiring_soon').length;
+
     if (expiredCount > 0) {
       return '$expiredCount expired';
     } else if (expiringCount > 0) {
@@ -568,7 +590,7 @@ class _BusUnitsScreenState extends State<BusUnitsScreen> {
     if (permits.isEmpty) {
       return Colors.grey;
     }
-    
+
     if (permits.any((p) => p['status'] == 'expired')) {
       return Colors.red;
     } else if (permits.any((p) => p['status'] == 'expiring_soon')) {
@@ -600,44 +622,49 @@ class _BusUnitsScreenState extends State<BusUnitsScreen> {
     List<Map<String, dynamic>> _drivers = [];
     List<Map<String, dynamic>> _conductors = [];
     bool _isLoading = true;
-    
+
     // Show loading dialog while fetching data
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => const Center(child: CircularProgressIndicator(color: Color(0xFF2F27CE))),
+      builder:
+          (context) => const Center(
+            child: CircularProgressIndicator(color: Color(0xFF2F27CE)),
+          ),
     );
-    
+
     try {
       // Get all drivers without filtering
       final driversData = await supabase.from('drivers').select('*');
       // Get all conductors without filtering
       final conductorsData = await supabase.from('conductors').select('*');
-  
+
       _drivers = List<Map<String, dynamic>>.from(driversData);
       _conductors = List<Map<String, dynamic>>.from(conductorsData);
 
       _isLoading = false;
-      
+
       // Close loading dialog
       if (context.mounted) Navigator.pop(context);
     } catch (e) {
       // Close loading dialog
       if (context.mounted) Navigator.pop(context);
-      
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error loading data: $e')),
-      );
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error loading data: $e')));
       return;
     }
-  
+
     if (_drivers.isEmpty || _conductors.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No available drivers or conductors found')),
+        const SnackBar(
+          content: Text('No available drivers or conductors found'),
+        ),
       );
       return;
     }
-  
+
     // Show the assignment dialog with improved design
     showDialog(
       context: context,
@@ -645,7 +672,9 @@ class _BusUnitsScreenState extends State<BusUnitsScreen> {
         return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
               title: Column(
                 children: [
                   Row(
@@ -656,13 +685,19 @@ class _BusUnitsScreenState extends State<BusUnitsScreen> {
                           color: const Color(0xFFDEDCFF),
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: const Icon(Icons.people_alt, color: Color(0xFF2F27CE)),
+                        child: const Icon(
+                          Icons.people_alt,
+                          color: Color(0xFF2F27CE),
+                        ),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(
                           'Assign Staff to Bus ${bus['plate_number']}',
-                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ],
@@ -678,7 +713,13 @@ class _BusUnitsScreenState extends State<BusUnitsScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // Driver dropdown with improved styling
-                      const Text('Driver', style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14)),
+                      const Text(
+                        'Driver',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w500,
+                          fontSize: 14,
+                        ),
+                      ),
                       const SizedBox(height: 6),
                       Container(
                         decoration: BoxDecoration(
@@ -687,33 +728,54 @@ class _BusUnitsScreenState extends State<BusUnitsScreen> {
                         ),
                         child: DropdownButtonFormField<Map<String, dynamic>>(
                           decoration: const InputDecoration(
-                            contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+                            contentPadding: EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 0,
+                            ),
                             border: InputBorder.none,
                             hintText: 'Select Driver',
-                            prefixIcon: Icon(Icons.person, color: Color(0xFF2F27CE)),
+                            prefixIcon: Icon(
+                              Icons.person,
+                              color: Color(0xFF2F27CE),
+                            ),
                           ),
-                          icon: const Icon(Icons.keyboard_arrow_down, color: Color(0xFF2F27CE)),
+                          icon: const Icon(
+                            Icons.keyboard_arrow_down,
+                            color: Color(0xFF2F27CE),
+                          ),
                           isExpanded: true,
                           value: _selectedDriver,
-                          items: _drivers.map((driver) {
-                            final fullName = '${driver['first_name'] ?? ''} ${driver['last_name'] ?? ''}';
-                            return DropdownMenuItem<Map<String, dynamic>>(
-                              value: driver,
-                              child: Text(fullName),
-                            );
-                          }).toList(),
+                          items:
+                              _drivers.map((driver) {
+                                final fullName =
+                                    '${driver['first_name'] ?? ''} ${driver['last_name'] ?? ''}';
+                                return DropdownMenuItem<Map<String, dynamic>>(
+                                  value: driver,
+                                  child: Text(fullName),
+                                );
+                              }).toList(),
                           onChanged: (value) {
                             setState(() {
                               _selectedDriver = value;
                             });
                           },
-                          validator: (value) => value == null ? 'Please select a driver' : null,
+                          validator:
+                              (value) =>
+                                  value == null
+                                      ? 'Please select a driver'
+                                      : null,
                         ),
                       ),
                       const SizedBox(height: 16),
-                      
+
                       // Conductor dropdown with improved styling
-                      const Text('Conductor', style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14)),
+                      const Text(
+                        'Conductor',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w500,
+                          fontSize: 14,
+                        ),
+                      ),
                       const SizedBox(height: 6),
                       Container(
                         decoration: BoxDecoration(
@@ -722,58 +784,79 @@ class _BusUnitsScreenState extends State<BusUnitsScreen> {
                         ),
                         child: DropdownButtonFormField<Map<String, dynamic>>(
                           decoration: const InputDecoration(
-                            contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+                            contentPadding: EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 0,
+                            ),
                             border: InputBorder.none,
                             hintText: 'Select Conductor',
-                            prefixIcon: Icon(Icons.person_outline, color: Color(0xFF2F27CE)),
+                            prefixIcon: Icon(
+                              Icons.person_outline,
+                              color: Color(0xFF2F27CE),
+                            ),
                           ),
-                          icon: const Icon(Icons.keyboard_arrow_down, color: Color(0xFF2F27CE)),
+                          icon: const Icon(
+                            Icons.keyboard_arrow_down,
+                            color: Color(0xFF2F27CE),
+                          ),
                           isExpanded: true,
                           value: _selectedConductor,
-                          items: _conductors.map((conductor) {
-                            // Try different ways to access name information
-                            String displayName;
-                            
-                            // Debug what fields are available
-                            print('Conductor data: ${conductor.keys}');
-                            
-                            // Option 1: Check if first_name and last_name exist directly
-                            if (conductor['first_name'] != null) {
-                              displayName = '${conductor['first_name']} ${conductor['last_name'] ?? ''}';
-                            }
-                            // Option 2: Check if single name field exists
-                            else if (conductor['name'] != null) {
-                              displayName = conductor['name'];
-                            }
-                            // Option 3: Check if contact_number exists for fallback
-                            else if (conductor['contact_number'] != null) {
-                              displayName = 'Conductor (${conductor['contact_number']})';
-                            }
-                            // Option 4: Use any identifier available as last resort
-                            else {
-                              String id = (conductor['id'] ?? '').toString();
-                              id = id.length > 8 ? id.substring(0, 8) : id;
-                              displayName = 'Conductor #$id';
-                            }
-                            
-                            return DropdownMenuItem<Map<String, dynamic>>(
-                              value: conductor,
-                              child: Text(displayName),
-                            );
-                          }).toList(),
+                          items:
+                              _conductors.map((conductor) {
+                                // Try different ways to access name information
+                                String displayName;
+
+                                // Debug what fields are available
+                                print('Conductor data: ${conductor.keys}');
+
+                                // Option 1: Check if first_name and last_name exist directly
+                                if (conductor['first_name'] != null) {
+                                  displayName =
+                                      '${conductor['first_name']} ${conductor['last_name'] ?? ''}';
+                                }
+                                // Option 2: Check if single name field exists
+                                else if (conductor['name'] != null) {
+                                  displayName = conductor['name'];
+                                }
+                                // Option 3: Check if contact_number exists for fallback
+                                else if (conductor['contact_number'] != null) {
+                                  displayName =
+                                      'Conductor (${conductor['contact_number']})';
+                                }
+                                // Option 4: Use any identifier available as last resort
+                                else {
+                                  String id =
+                                      (conductor['id'] ?? '').toString();
+                                  id = id.length > 8 ? id.substring(0, 8) : id;
+                                  displayName = 'Conductor #$id';
+                                }
+
+                                return DropdownMenuItem<Map<String, dynamic>>(
+                                  value: conductor,
+                                  child: Text(displayName),
+                                );
+                              }).toList(),
                           onChanged: (value) {
                             setState(() {
                               _selectedConductor = value;
                             });
                           },
-                          validator: (value) => value == null ? 'Please select a conductor' : null,
+                          validator:
+                              (value) =>
+                                  value == null
+                                      ? 'Please select a conductor'
+                                      : null,
                         ),
                       ),
                       const SizedBox(height: 24),
-                      
+
                       // Date Selection with improved styling
-                      const Text('Assignment Period', 
-                        style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14)
+                      const Text(
+                        'Assignment Period',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w500,
+                          fontSize: 14,
+                        ),
                       ),
                       const SizedBox(height: 12),
                       Row(
@@ -784,8 +867,12 @@ class _BusUnitsScreenState extends State<BusUnitsScreen> {
                                 final date = await showDatePicker(
                                   context: context,
                                   initialDate: _startDate,
-                                  firstDate: DateTime.now().subtract(const Duration(days: 1)),
-                                  lastDate: DateTime.now().add(const Duration(days: 365)),
+                                  firstDate: DateTime.now().subtract(
+                                    const Duration(days: 1),
+                                  ),
+                                  lastDate: DateTime.now().add(
+                                    const Duration(days: 365),
+                                  ),
                                   builder: (context, child) {
                                     return Theme(
                                       data: Theme.of(context).copyWith(
@@ -801,31 +888,50 @@ class _BusUnitsScreenState extends State<BusUnitsScreen> {
                                   setState(() {
                                     _startDate = date;
                                     if (_endDate.isBefore(_startDate)) {
-                                      _endDate = _startDate.add(const Duration(days: 1));
+                                      _endDate = _startDate.add(
+                                        const Duration(days: 1),
+                                      );
                                     }
                                   });
                                 }
                               },
                               child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 12,
+                                ),
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(color: Colors.grey.shade300),
+                                  border: Border.all(
+                                    color: Colors.grey.shade300,
+                                  ),
                                 ),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    const Text('Start Date', 
-                                      style: TextStyle(fontSize: 12, color: Colors.grey)
+                                    const Text(
+                                      'Start Date',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey,
+                                      ),
                                     ),
                                     const SizedBox(height: 4),
                                     Row(
                                       children: [
-                                        const Icon(Icons.calendar_today, size: 16, color: Color(0xFF2F27CE)),
+                                        const Icon(
+                                          Icons.calendar_today,
+                                          size: 16,
+                                          color: Color(0xFF2F27CE),
+                                        ),
                                         const SizedBox(width: 6),
                                         Text(
-                                          DateFormat('MMM dd, yyyy').format(_startDate),
-                                          style: const TextStyle(fontWeight: FontWeight.w500),
+                                          DateFormat(
+                                            'MMM dd, yyyy',
+                                          ).format(_startDate),
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.w500,
+                                          ),
                                         ),
                                       ],
                                     ),
@@ -842,7 +948,9 @@ class _BusUnitsScreenState extends State<BusUnitsScreen> {
                                   context: context,
                                   initialDate: _endDate,
                                   firstDate: _startDate,
-                                  lastDate: DateTime.now().add(const Duration(days: 365)),
+                                  lastDate: DateTime.now().add(
+                                    const Duration(days: 365),
+                                  ),
                                   builder: (context, child) {
                                     return Theme(
                                       data: Theme.of(context).copyWith(
@@ -861,25 +969,42 @@ class _BusUnitsScreenState extends State<BusUnitsScreen> {
                                 }
                               },
                               child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 12,
+                                ),
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(color: Colors.grey.shade300),
+                                  border: Border.all(
+                                    color: Colors.grey.shade300,
+                                  ),
                                 ),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    const Text('End Date', 
-                                      style: TextStyle(fontSize: 12, color: Colors.grey)
+                                    const Text(
+                                      'End Date',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey,
+                                      ),
                                     ),
                                     const SizedBox(height: 4),
                                     Row(
                                       children: [
-                                        const Icon(Icons.calendar_today, size: 16, color: Color(0xFF2F27CE)),
+                                        const Icon(
+                                          Icons.calendar_today,
+                                          size: 16,
+                                          color: Color(0xFF2F27CE),
+                                        ),
                                         const SizedBox(width: 6),
                                         Text(
-                                          DateFormat('MMM dd, yyyy').format(_endDate),
-                                          style: const TextStyle(fontWeight: FontWeight.w500),
+                                          DateFormat(
+                                            'MMM dd, yyyy',
+                                          ).format(_endDate),
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.w500,
+                                          ),
                                         ),
                                       ],
                                     ),
@@ -899,7 +1024,10 @@ class _BusUnitsScreenState extends State<BusUnitsScreen> {
                   onPressed: () {
                     Navigator.pop(context);
                   },
-                  child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+                  child: const Text(
+                    'Cancel',
+                    style: TextStyle(color: Colors.grey),
+                  ),
                 ),
                 ElevatedButton(
                   onPressed: () async {
@@ -908,30 +1036,44 @@ class _BusUnitsScreenState extends State<BusUnitsScreen> {
                         showDialog(
                           context: context,
                           barrierDismissible: false,
-                          builder: (context) => const Center(child: CircularProgressIndicator(color: Color(0xFF2F27CE))),
+                          builder:
+                              (context) => const Center(
+                                child: CircularProgressIndicator(
+                                  color: Color(0xFF2F27CE),
+                                ),
+                              ),
                         );
-                        
+
                         await supabase
-                          .from('bus_assignments')
-                          .update({'is_active': false, 'end_date': DateFormat('yyyy-MM-dd').format(DateTime.now())})
-                          .eq('bus_id', bus['id'])
-                          .eq('is_active', true);
-                        
+                            .from('bus_assignments')
+                            .update({
+                              'is_active': false,
+                              'end_date': DateFormat(
+                                'yyyy-MM-dd',
+                              ).format(DateTime.now()),
+                            })
+                            .eq('bus_id', bus['id'])
+                            .eq('is_active', true);
+
                         final assignmentData = {
                           'bus_id': bus['id'],
                           'driver_id': _selectedDriver!['id'],
                           'conductor_id': _selectedConductor!['id'],
-                          'assignment_date': DateFormat('yyyy-MM-dd').format(_startDate),
+                          'assignment_date': DateFormat(
+                            'yyyy-MM-dd',
+                          ).format(_startDate),
                           'end_date': DateFormat('yyyy-MM-dd').format(_endDate),
                           'is_active': true,
                           'created_by': supabase.auth.currentUser!.id,
                         };
-                        
-                        await supabase.from('bus_assignments').insert(assignmentData);
-                        
+
+                        await supabase
+                            .from('bus_assignments')
+                            .insert(assignmentData);
+
                         if (context.mounted) Navigator.pop(context);
                         if (context.mounted) Navigator.pop(context);
-                        
+
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
                             content: Text('Staff assigned successfully!'),
@@ -940,7 +1082,7 @@ class _BusUnitsScreenState extends State<BusUnitsScreen> {
                         );
                       } catch (e) {
                         if (context.mounted) Navigator.pop(context);
-                        
+
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(content: Text('Error assigning staff: $e')),
                         );
@@ -971,7 +1113,7 @@ class _BusUnitsScreenState extends State<BusUnitsScreen> {
       barrierDismissible: false,
       builder: (context) => const Center(child: CircularProgressIndicator()),
     );
-    
+
     try {
       // Load assignment history
       final assignments = await supabase
@@ -979,19 +1121,21 @@ class _BusUnitsScreenState extends State<BusUnitsScreen> {
           .select('*, drivers(*, profiles(*)), conductors(*, profiles(*))')
           .eq('bus_id', bus['id'])
           .order('assignment_date', ascending: false);
-      
+
       // Close loading dialog
       if (context.mounted) Navigator.pop(context);
-      
+
       if (!context.mounted) return;
-      
+
       if (assignments.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('No assignment history found for this bus')),
+          const SnackBar(
+            content: Text('No assignment history found for this bus'),
+          ),
         );
         return;
       }
-      
+
       // Show assignment history dialog
       showDialog(
         context: context,
@@ -1022,30 +1166,47 @@ class _BusUnitsScreenState extends State<BusUnitsScreen> {
                         final assignment = assignments[index];
                         final driver = assignment['drivers']['profiles'];
                         final conductor = assignment['conductors']['profiles'];
-                        
-                        final driverName = '${driver['first_name'] ?? ''} ${driver['last_name'] ?? ''}';
-                        final conductorName = '${conductor['first_name'] ?? ''} ${conductor['last_name'] ?? ''}';
-                        
-                        final startDate = DateFormat('MMM dd, yyyy').format(DateTime.parse(assignment['assignment_date']));
-                        final endDate = assignment['end_date'] != null 
-                            ? DateFormat('MMM dd, yyyy').format(DateTime.parse(assignment['end_date']))
-                            : 'Present';
-                        
+
+                        final driverName =
+                            '${driver['first_name'] ?? ''} ${driver['last_name'] ?? ''}';
+                        final conductorName =
+                            '${conductor['first_name'] ?? ''} ${conductor['last_name'] ?? ''}';
+
+                        final startDate = DateFormat(
+                          'MMM dd, yyyy',
+                        ).format(DateTime.parse(assignment['assignment_date']));
+                        final endDate =
+                            assignment['end_date'] != null
+                                ? DateFormat(
+                                  'MMM dd, yyyy',
+                                ).format(DateTime.parse(assignment['end_date']))
+                                : 'Present';
+
                         return Card(
                           margin: const EdgeInsets.only(bottom: 8),
                           child: ListTile(
-                            title: Text('$driverName (Driver) & $conductorName (Conductor)'),
+                            title: Text(
+                              '$driverName (Driver) & $conductorName (Conductor)',
+                            ),
                             subtitle: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text('Period: $startDate to $endDate'),
-                                Text('Status: ${assignment['is_active'] ? 'Active' : 'Inactive'}'),
+                                Text(
+                                  'Status: ${assignment['is_active'] ? 'Active' : 'Inactive'}',
+                                ),
                               ],
                             ),
                             isThreeLine: true,
                             leading: CircleAvatar(
-                              backgroundColor: assignment['is_active'] ? Colors.green : Colors.grey,
-                              child: const Icon(Icons.people, color: Colors.white),
+                              backgroundColor:
+                                  assignment['is_active']
+                                      ? Colors.green
+                                      : Colors.grey,
+                              child: const Icon(
+                                Icons.people,
+                                color: Colors.white,
+                              ),
                             ),
                           ),
                         );
@@ -1068,7 +1229,7 @@ class _BusUnitsScreenState extends State<BusUnitsScreen> {
     } catch (e) {
       // Close loading dialog if there's an error
       if (context.mounted) Navigator.pop(context);
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error loading assignment history: $e')),
       );
@@ -1080,53 +1241,54 @@ class _BusUnitsScreenState extends State<BusUnitsScreen> {
     final _fareController = TextEditingController();
     final _expensesController = TextEditingController();
     final _notesController = TextEditingController();
-    
+
     Map<String, dynamic>? _currentAssignment;
     Map<String, dynamic>? _selectedDriver;
     Map<String, dynamic>? _selectedConductor;
     DateTime _tripDate = DateTime.now();
     String _busCondition = 'Good';
     bool _isLoading = true;
-    
+
     // Show loading dialog while fetching data
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (context) => const Center(child: CircularProgressIndicator()),
     );
-    
+
     try {
       // Check if there's an active assignment for this bus
-      final activeAssignment = await supabase
-          .from('bus_assignments')
-          .select('*, drivers(*, profiles(*)), conductors(*, profiles(*))')
-          .eq('bus_id', bus['id'])
-          .eq('is_active', true)
-          .maybeSingle();
-    
+      final activeAssignment =
+          await supabase
+              .from('bus_assignments')
+              .select('*, drivers(*, profiles(*)), conductors(*, profiles(*))')
+              .eq('bus_id', bus['id'])
+              .eq('is_active', true)
+              .maybeSingle();
+
       _currentAssignment = activeAssignment;
-    
+
       if (_currentAssignment != null) {
         _selectedDriver = _currentAssignment['drivers'];
         _selectedConductor = _currentAssignment['conductors'];
       }
-    
+
       _isLoading = false;
-    
+
       // Close loading dialog
       if (context.mounted) Navigator.pop(context);
-    
+
       if (!context.mounted) return;
     } catch (e) {
       // Close loading dialog
       if (context.mounted) Navigator.pop(context);
-    
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error loading data: $e')),
-      );
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error loading data: $e')));
       return;
     }
-  
+
     // Show the trip log dialog
     showDialog(
       context: context,
@@ -1144,13 +1306,17 @@ class _BusUnitsScreenState extends State<BusUnitsScreen> {
                       // Trip Date
                       ListTile(
                         title: const Text('Trip Date'),
-                        subtitle: Text(DateFormat('MMM dd, yyyy').format(_tripDate)),
+                        subtitle: Text(
+                          DateFormat('MMM dd, yyyy').format(_tripDate),
+                        ),
                         trailing: const Icon(Icons.calendar_today),
                         onTap: () async {
                           final date = await showDatePicker(
                             context: context,
                             initialDate: _tripDate,
-                            firstDate: DateTime.now().subtract(const Duration(days: 30)),
+                            firstDate: DateTime.now().subtract(
+                              const Duration(days: 30),
+                            ),
                             lastDate: DateTime.now(),
                           );
                           if (date != null) {
@@ -1161,21 +1327,21 @@ class _BusUnitsScreenState extends State<BusUnitsScreen> {
                         },
                       ),
                       const SizedBox(height: 16),
-                      
+
                       // Display selected driver and conductor if available
                       if (_currentAssignment != null) ...[
                         ListTile(
                           leading: const Icon(Icons.person),
                           title: const Text('Driver'),
                           subtitle: Text(
-                            '${_selectedDriver!['profiles']['first_name']} ${_selectedDriver!['profiles']['last_name']}'
+                            '${_selectedDriver!['profiles']['first_name']} ${_selectedDriver!['profiles']['last_name']}',
                           ),
                         ),
                         ListTile(
                           leading: const Icon(Icons.person_outline),
                           title: const Text('Conductor'),
                           subtitle: Text(
-                            '${_selectedConductor!['profiles']['first_name']} ${_selectedConductor!['profiles']['last_name']}'
+                            '${_selectedConductor!['profiles']['first_name']} ${_selectedConductor!['profiles']['last_name']}',
                           ),
                         ),
                       ] else ...[
@@ -1185,7 +1351,7 @@ class _BusUnitsScreenState extends State<BusUnitsScreen> {
                         ),
                       ],
                       const SizedBox(height: 16),
-                      
+
                       // Fare Collected
                       TextFormField(
                         controller: _fareController,
@@ -1205,7 +1371,7 @@ class _BusUnitsScreenState extends State<BusUnitsScreen> {
                         },
                       ),
                       const SizedBox(height: 16),
-                      
+
                       // Expenses
                       TextFormField(
                         controller: _expensesController,
@@ -1225,7 +1391,7 @@ class _BusUnitsScreenState extends State<BusUnitsScreen> {
                         },
                       ),
                       const SizedBox(height: 16),
-                      
+
                       // Bus Condition
                       DropdownButtonFormField<String>(
                         decoration: const InputDecoration(
@@ -1233,12 +1399,15 @@ class _BusUnitsScreenState extends State<BusUnitsScreen> {
                           border: OutlineInputBorder(),
                         ),
                         value: _busCondition,
-                        items: ['Good', 'Fair', 'Poor', 'Needs Maintenance']
-                            .map((condition) => DropdownMenuItem<String>(
-                                  value: condition,
-                                  child: Text(condition),
-                                ))
-                            .toList(),
+                        items:
+                            ['Good', 'Fair', 'Poor', 'Needs Maintenance']
+                                .map(
+                                  (condition) => DropdownMenuItem<String>(
+                                    value: condition,
+                                    child: Text(condition),
+                                  ),
+                                )
+                                .toList(),
                         onChanged: (value) {
                           if (value != null) {
                             setState(() {
@@ -1248,7 +1417,7 @@ class _BusUnitsScreenState extends State<BusUnitsScreen> {
                         },
                       ),
                       const SizedBox(height: 16),
-                      
+
                       // Notes
                       TextFormField(
                         controller: _notesController,
@@ -1270,63 +1439,82 @@ class _BusUnitsScreenState extends State<BusUnitsScreen> {
                   child: const Text('Cancel'),
                 ),
                 ElevatedButton(
-                  onPressed: _currentAssignment == null ? null : () async {
-                    if (_formKey.currentState!.validate()) {
-                      try {
-                        // Show loading dialog
-                        showDialog(
-                          context: context,
-                          barrierDismissible: false,
-                          builder: (context) => const Center(child: CircularProgressIndicator()),
-                        );
-                        
-                        // Create trip log
-                        final tripData = {
-                          'bus_id': bus['id'],
-                          'driver_id': _selectedDriver!['id'],
-                          'conductor_id': _selectedConductor!['id'],
-                          'trip_date': DateFormat('yyyy-MM-dd').format(_tripDate),
-                          'fare_collected': double.parse(_fareController.text),
-                          'expenses': double.parse(_expensesController.text),
-                          'bus_condition': _busCondition,
-                          'notes': _notesController.text,
-                          'created_by': supabase.auth.currentUser!.id,
-                        };
-                        
-                        await supabase
-                            .from('bus_trip_logs')
-                            .insert(tripData);
-                        
-                        // Update bus status if condition is poor or needs maintenance
-                        if (_busCondition == 'Poor' || _busCondition == 'Needs Maintenance') {
-                          await supabase
-                              .from('bus_units')
-                              .update({'status': 'maintenance'})
-                              .eq('id', bus['id']);
-                              
-                          // Reload bus units
-                          _loadBusUnits();
-                        }
-                        
-                        // Close loading dialog
-                        if (context.mounted) Navigator.pop(context);
-                        
-                        // Close trip log dialog
-                        if (context.mounted) Navigator.pop(context);
-                        
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Trip log added successfully!')),
-                        );
-                      } catch (e) {
-                        // Close loading dialog if there's an error
-                        if (context.mounted) Navigator.pop(context);
-                        
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Error adding trip log: $e')),
-                        );
-                      }
-                    }
-                  },
+                  onPressed:
+                      _currentAssignment == null
+                          ? null
+                          : () async {
+                            if (_formKey.currentState!.validate()) {
+                              try {
+                                // Show loading dialog
+                                showDialog(
+                                  context: context,
+                                  barrierDismissible: false,
+                                  builder:
+                                      (context) => const Center(
+                                        child: CircularProgressIndicator(),
+                                      ),
+                                );
+
+                                // Create trip log
+                                final tripData = {
+                                  'bus_id': bus['id'],
+                                  'driver_id': _selectedDriver!['id'],
+                                  'conductor_id': _selectedConductor!['id'],
+                                  'trip_date': DateFormat(
+                                    'yyyy-MM-dd',
+                                  ).format(_tripDate),
+                                  'fare_collected': double.parse(
+                                    _fareController.text,
+                                  ),
+                                  'expenses': double.parse(
+                                    _expensesController.text,
+                                  ),
+                                  'bus_condition': _busCondition,
+                                  'notes': _notesController.text,
+                                  'created_by': supabase.auth.currentUser!.id,
+                                };
+
+                                await supabase
+                                    .from('bus_trip_logs')
+                                    .insert(tripData);
+
+                                // Update bus status if condition is poor or needs maintenance
+                                if (_busCondition == 'Poor' ||
+                                    _busCondition == 'Needs Maintenance') {
+                                  await supabase
+                                      .from('bus_units')
+                                      .update({'status': 'maintenance'})
+                                      .eq('id', bus['id']);
+
+                                  // Reload bus units
+                                  _loadBusUnits();
+                                }
+
+                                // Close loading dialog
+                                if (context.mounted) Navigator.pop(context);
+
+                                // Close trip log dialog
+                                if (context.mounted) Navigator.pop(context);
+
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      'Trip log added successfully!',
+                                    ),
+                                  ),
+                                );
+                              } catch (e) {
+                                // Close loading dialog if there's an error
+                                if (context.mounted) Navigator.pop(context);
+
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('Error adding trip log: $e'),
+                                  ),
+                                );
+                              }
+                            }
+                          },
                   child: const Text('Save'),
                 ),
               ],
@@ -1344,7 +1532,7 @@ class _BusUnitsScreenState extends State<BusUnitsScreen> {
       barrierDismissible: false,
       builder: (context) => const Center(child: CircularProgressIndicator()),
     );
-    
+
     try {
       // Load trip logs
       final tripLogs = await supabase
@@ -1352,19 +1540,19 @@ class _BusUnitsScreenState extends State<BusUnitsScreen> {
           .select('*, drivers(*, profiles(*)), conductors(*, profiles(*))')
           .eq('bus_id', bus['id'])
           .order('trip_date', ascending: false);
-      
+
       // Close loading dialog
       if (context.mounted) Navigator.pop(context);
-      
+
       if (!context.mounted) return;
-      
+
       if (tripLogs.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('No trip logs found for this bus')),
         );
         return;
       }
-      
+
       // Show trip logs dialog
       showDialog(
         context: context,
@@ -1395,36 +1583,51 @@ class _BusUnitsScreenState extends State<BusUnitsScreen> {
                         final tripLog = tripLogs[index];
                         final driver = tripLog['drivers']['profiles'];
                         final conductor = tripLog['conductors']['profiles'];
-                        
-                        final driverName = '${driver['first_name'] ?? ''} ${driver['last_name'] ?? ''}';
-                        final conductorName = '${conductor['first_name'] ?? ''} ${conductor['last_name'] ?? ''}';
-                        
-                        final tripDate = DateFormat('MMM dd, yyyy').format(DateTime.parse(tripLog['trip_date']));
-                        final netIncome = tripLog['fare_collected'] - tripLog['expenses'];
-                        
+
+                        final driverName =
+                            '${driver['first_name'] ?? ''} ${driver['last_name'] ?? ''}';
+                        final conductorName =
+                            '${conductor['first_name'] ?? ''} ${conductor['last_name'] ?? ''}';
+
+                        final tripDate = DateFormat(
+                          'MMM dd, yyyy',
+                        ).format(DateTime.parse(tripLog['trip_date']));
+                        final netIncome =
+                            tripLog['fare_collected'] - tripLog['expenses'];
+
                         return Card(
                           margin: const EdgeInsets.only(bottom: 8),
                           child: ListTile(
                             title: Text('Trip on $tripDate'),
                             subtitle: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start, 
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text('Driver: $driverName'),
                                 Text('Conductor: $conductorName'),
-                                Text('Fare: ₱${tripLog['fare_collected'].toStringAsFixed(2)} | Expenses: ₱${tripLog['expenses'].toStringAsFixed(2)}'),
-                                Text('Net Income: ₱${netIncome.toStringAsFixed(2)}'),
+                                Text(
+                                  'Fare: ₱${tripLog['fare_collected'].toStringAsFixed(2)} | Expenses: ₱${tripLog['expenses'].toStringAsFixed(2)}',
+                                ),
+                                Text(
+                                  'Net Income: ₱${netIncome.toStringAsFixed(2)}',
+                                ),
                                 Text('Condition: ${tripLog['bus_condition']}'),
-                                if (tripLog['notes'] != null && tripLog['notes'].isNotEmpty)
+                                if (tripLog['notes'] != null &&
+                                    tripLog['notes'].isNotEmpty)
                                   Text('Notes: ${tripLog['notes']}'),
                               ],
                             ),
                             isThreeLine: true,
                             leading: CircleAvatar(
-                              backgroundColor: _getConditionColor(tripLog['bus_condition']),
-                              child: const Icon(Icons.directions_bus, color: Colors.white),
+                              backgroundColor: _getConditionColor(
+                                tripLog['bus_condition'],
+                              ),
+                              child: const Icon(
+                                Icons.directions_bus,
+                                color: Colors.white,
+                              ),
                             ),
-                          ),
-                        );
+                          ), // <-- Fixed: properly closed parenthesis for ListTile
+                        ); // <-- Fixed: properly closed parenthesis for Card
                       },
                     ),
                   ),
@@ -1444,10 +1647,10 @@ class _BusUnitsScreenState extends State<BusUnitsScreen> {
     } catch (e) {
       // Close loading dialog if there's an error
       if (context.mounted) Navigator.pop(context);
-      
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error loading trip logs: $e')),
-      );
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error loading trip logs: $e')));
     }
   }
 

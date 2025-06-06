@@ -39,10 +39,10 @@ class _ConductorDetailScreenState extends State<ConductorDetailScreen> {
           .order('pay_period_end', ascending: false)
           .limit(5);
       
-      // Load assignments
+      // Update: Load assignments from bus_assignments table instead of conductor_assignments
       final assignmentData = await supabase
-          .from('conductor_assignments')
-          .select('*, buses(*)')
+          .from('bus_assignments')
+          .select('*, bus_units(*)')
           .eq('conductor_id', widget.conductor['id'])
           .order('assignment_date', ascending: false)
           .limit(5);
@@ -346,7 +346,8 @@ class _ConductorDetailScreenState extends State<ConductorDetailScreen> {
     }
 
     return _assignments.take(3).map((assignment) {
-      final bus = assignment['buses'];
+      // Update: Use bus_units instead of buses
+      final bus = assignment['bus_units'];
       final period = assignment['end_date'] != null 
           ? '${DateFormat('MMM dd, yyyy').format(DateTime.parse(assignment['assignment_date']))} - ${DateFormat('MMM dd, yyyy').format(DateTime.parse(assignment['end_date']))}'
           : 'Since ${DateFormat('MMM dd, yyyy').format(DateTime.parse(assignment['assignment_date']))}';
@@ -357,7 +358,8 @@ class _ConductorDetailScreenState extends State<ConductorDetailScreen> {
             backgroundColor: assignment['is_active'] ? Colors.green : Colors.grey,
             child: const Icon(Icons.directions_bus, color: Colors.white),
           ),
-          title: Text('Bus ${bus['bus_number']} - ${bus['plate_number']}'),
+          // Update: Use plate_number and model from bus_units
+          title: Text('Bus ${bus['plate_number']}'),
           subtitle: Text(period),
           trailing: assignment['is_active'] ? const Text('Active') : const Text('Inactive'),
         ),
@@ -426,13 +428,13 @@ class _ConductorDetailScreenState extends State<ConductorDetailScreen> {
           conductor: widget.conductor,
           fetchData: () async {
             return await supabase
-                .from('conductor_assignments')
-                .select('*, buses(*)')
+                .from('bus_assignments')
+                .select('*, bus_units(*)')
                 .eq('conductor_id', widget.conductor['id'])
                 .order('assignment_date', ascending: false);
           },
           itemBuilder: (context, item) {
-            final bus = item['buses'];
+            final bus = item['bus_units'];
             final period = item['end_date'] != null 
                 ? '${DateFormat('MMM dd, yyyy').format(DateTime.parse(item['assignment_date']))} - ${DateFormat('MMM dd, yyyy').format(DateTime.parse(item['end_date']))}'
                 : 'Since ${DateFormat('MMM dd, yyyy').format(DateTime.parse(item['assignment_date']))}';
@@ -442,7 +444,7 @@ class _ConductorDetailScreenState extends State<ConductorDetailScreen> {
                 backgroundColor: item['is_active'] ? Colors.green : Colors.grey,
                 child: const Icon(Icons.directions_bus, color: Colors.white),
               ),
-              title: Text('Bus ${bus['bus_number']} - ${bus['plate_number']}'),
+              title: Text('Bus ${bus['plate_number']}'),
               subtitle: Text(period),
               trailing: item['is_active'] ? const Text('Active') : const Text('Inactive'),
             );
