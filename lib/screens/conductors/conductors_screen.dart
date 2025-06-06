@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:bus_management/config/supabase_config.dart';
 import 'package:intl/intl.dart';
 import 'dart:async';
+import 'package:bus_management/screens/conductors/conductor_detail_screen.dart'; // Add this import
 
 class ConductorsScreen extends StatefulWidget {
   const ConductorsScreen({super.key});
@@ -638,66 +639,13 @@ class _ConductorsScreenState extends State<ConductorsScreen> with SingleTickerPr
     );
   }
 
+  // Replace the existing _showConductorDetails method with this:
   void _showConductorDetails(Map<String, dynamic> conductor) {
-    final profile = conductor['profiles'];
-    final fullName = '${profile['first_name'] ?? ''} ${profile['last_name'] ?? ''}';
-    final employmentDate = conductor['employment_date'] != null 
-        ? DateFormat('MMM dd, yyyy').format(DateTime.parse(conductor['employment_date'])) 
-        : 'Not set';
-    
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text(fullName),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              ListTile(
-                leading: const Icon(Icons.phone),
-                title: const Text('Phone'),
-                subtitle: Text(conductor['phone_number'] ?? 'Not provided'),
-              ),
-              ListTile(
-                leading: const Icon(Icons.badge),
-                title: const Text('License'),
-                subtitle: Text(conductor['license_number'] ?? 'Not provided'),
-              ),
-              ListTile(
-                leading: const Icon(Icons.work),
-                title: const Text('Employment Date'),
-                subtitle: Text(employmentDate),
-              ),
-              ListTile(
-                leading: const Icon(Icons.attach_money),
-                title: const Text('Base Salary'),
-                subtitle: Text('₱${conductor['base_salary'].toStringAsFixed(2)}'),
-              ),
-              ListTile(
-                leading: const Icon(Icons.person_outline),
-                title: const Text('Status'),
-                subtitle: Text(conductor['employment_status'] ?? 'Active'),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('Close'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                _showEditConductorDialog(conductor);
-              },
-              child: const Text('Edit'),
-            ),
-          ],
-        );
-      },
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ConductorDetailScreen(conductor: conductor),
+      ),
     );
   }
   
