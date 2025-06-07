@@ -3,6 +3,16 @@ import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../models/driver.dart';
 
+// Define theme colors to match the login screen
+class AppColors {
+  static const Color primary = Color(0xFF4444E5); // The blue color
+  static const Color background = Color(0xFFF5F7FF); // Light background color
+  static const Color cardBackground = Colors.white;
+  static const Color textPrimary = Color(0xFF333333);
+  static const Color textSecondary = Color(0xFF666666);
+  static const Color accent = Color(0xFF6C63FF); // Accent color for some elements
+}
+
 class DriverDetailScreen extends StatefulWidget {
   final Driver driver;
   
@@ -36,10 +46,12 @@ class _DriverDetailScreenState extends State<DriverDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         title: Text(widget.driver.name),
-        backgroundColor: const Color(0xFF2F27CE),
+        backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
+        elevation: 0,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -48,7 +60,11 @@ class _DriverDetailScreenState extends State<DriverDetailScreen> {
           children: [
             // Driver Info Card
             Card(
-              elevation: 4,
+              elevation: 2,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              color: AppColors.cardBackground,
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
@@ -62,12 +78,13 @@ class _DriverDetailScreenState extends State<DriverDetailScreen> {
                           widget.driver.name.substring(0, 1),
                           style: const TextStyle(
                             fontSize: 40,
-                            color: Color(0xFF2F27CE),
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 20),
                     _infoRow('Name', widget.driver.name),
                     _infoRow('Contact', widget.driver.contactNumber),
                     _infoRow('License No', widget.driver.licenseNumber),
@@ -88,6 +105,7 @@ class _DriverDetailScreenState extends State<DriverDetailScreen> {
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary,
               ),
             ),
             const SizedBox(height: 16),
@@ -97,11 +115,11 @@ class _DriverDetailScreenState extends State<DriverDetailScreen> {
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               crossAxisCount: 2,
-              crossAxisSpacing: 10,
-              mainAxisSpacing: 10,
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 12,
               childAspectRatio: 1.5,
               children: [
-                _actionCard('Salary History', Icons.history, Colors.blue, () => _viewSalaryHistory()),
+                _actionCard('Salary History', Icons.history, AppColors.primary, () => _viewSalaryHistory()),
                 _actionCard('Bus Assignments', Icons.directions_bus, Colors.green, () => _viewBusAssignments()),
                 _actionCard('Upcoming Salary', Icons.calendar_today, Colors.orange, () => _viewUpcomingSalary()),
                 _actionCard('Cash Advances', Icons.money, Colors.red, () => _viewCashAdvances()),
@@ -118,7 +136,7 @@ class _DriverDetailScreenState extends State<DriverDetailScreen> {
 
   Widget _infoRow(String label, String value) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      padding: const EdgeInsets.symmetric(vertical: 6.0),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -128,11 +146,17 @@ class _DriverDetailScreenState extends State<DriverDetailScreen> {
               '$label:',
               style: const TextStyle(
                 fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary,
               ),
             ),
           ),
           Expanded(
-            child: Text(value),
+            child: Text(
+              value,
+              style: const TextStyle(
+                color: AppColors.textSecondary,
+              ),
+            ),
           ),
         ],
       ),
@@ -141,9 +165,13 @@ class _DriverDetailScreenState extends State<DriverDetailScreen> {
 
   Widget _actionCard(String title, IconData icon, Color color, VoidCallback onTap) {
     return Card(
-      elevation: 4,
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
       child: InkWell(
         onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: const EdgeInsets.all(12.0),
           child: Column(
@@ -160,6 +188,7 @@ class _DriverDetailScreenState extends State<DriverDetailScreen> {
                 textAlign: TextAlign.center,
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
                 ),
               ),
             ],
@@ -583,22 +612,37 @@ class _DriverDetailScreenState extends State<DriverDetailScreen> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Add New Deduction'),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 TextField(
                   controller: _amountController,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: 'Amount (₱)',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(color: AppColors.primary, width: 2),
+                    ),
                   ),
                   keyboardType: TextInputType.number,
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 16),
                 DropdownButtonFormField<String>(
                   value: _selectedDeductionType,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: 'Deduction Type',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(color: AppColors.primary, width: 2),
+                    ),
                   ),
                   items: const [
                     DropdownMenuItem(value: 'SSS', child: Text('SSS')),
@@ -613,12 +657,19 @@ class _DriverDetailScreenState extends State<DriverDetailScreen> {
                     _selectedDeductionType = value!;
                   },
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 16),
                 TextField(
                   controller: _dateController,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: 'Date',
-                    suffixIcon: Icon(Icons.calendar_today),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(color: AppColors.primary, width: 2),
+                    ),
+                    suffixIcon: const Icon(Icons.calendar_today, color: AppColors.primary),
                   ),
                   readOnly: true,
                   onTap: () async {
@@ -627,6 +678,16 @@ class _DriverDetailScreenState extends State<DriverDetailScreen> {
                       initialDate: _selectedDate,
                       firstDate: DateTime(2000),
                       lastDate: DateTime(2101),
+                      builder: (context, child) {
+                        return Theme(
+                          data: Theme.of(context).copyWith(
+                            colorScheme: const ColorScheme.light(
+                              primary: AppColors.primary,
+                            ),
+                          ),
+                          child: child!,
+                        );
+                      },
                     );
                     if (pickedDate != null) {
                       _selectedDate = pickedDate;
@@ -634,11 +695,18 @@ class _DriverDetailScreenState extends State<DriverDetailScreen> {
                     }
                   },
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 16),
                 TextField(
                   controller: _descriptionController,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: 'Description',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(color: AppColors.primary, width: 2),
+                    ),
                   ),
                   maxLines: 2,
                 ),
@@ -650,13 +718,19 @@ class _DriverDetailScreenState extends State<DriverDetailScreen> {
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: const Text('Cancel'),
+              child: const Text('Cancel', style: TextStyle(color: AppColors.textSecondary)),
             ),
             ElevatedButton(
               onPressed: () {
                 _addDeduction();
                 Navigator.of(context).pop();
               },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
               child: const Text('Save'),
             ),
           ],
@@ -678,22 +752,37 @@ class _DriverDetailScreenState extends State<DriverDetailScreen> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Add New Bonus/Incentive'),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 TextField(
                   controller: _amountController,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: 'Amount (₱)',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(color: AppColors.primary, width: 2),
+                    ),
                   ),
                   keyboardType: TextInputType.number,
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 16),
                 DropdownButtonFormField<String>(
                   value: _selectedBonusType,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: 'Bonus Type',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(color: AppColors.primary, width: 2),
+                    ),
                   ),
                   items: const [
                     DropdownMenuItem(value: 'Performance', child: Text('Performance')),
@@ -707,12 +796,19 @@ class _DriverDetailScreenState extends State<DriverDetailScreen> {
                     _selectedBonusType = value!;
                   },
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 16),
                 TextField(
                   controller: _dateController,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: 'Date',
-                    suffixIcon: Icon(Icons.calendar_today),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(color: AppColors.primary, width: 2),
+                    ),
+                    suffixIcon: const Icon(Icons.calendar_today, color: AppColors.primary),
                   ),
                   readOnly: true,
                   onTap: () async {
@@ -721,6 +817,16 @@ class _DriverDetailScreenState extends State<DriverDetailScreen> {
                       initialDate: _selectedDate,
                       firstDate: DateTime(2000),
                       lastDate: DateTime(2101),
+                      builder: (context, child) {
+                        return Theme(
+                          data: Theme.of(context).copyWith(
+                            colorScheme: const ColorScheme.light(
+                              primary: AppColors.primary,
+                            ),
+                          ),
+                          child: child!,
+                        );
+                      },
                     );
                     if (pickedDate != null) {
                       _selectedDate = pickedDate;
@@ -728,11 +834,18 @@ class _DriverDetailScreenState extends State<DriverDetailScreen> {
                     }
                   },
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 16),
                 TextField(
                   controller: _descriptionController,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: 'Description',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(color: AppColors.primary, width: 2),
+                    ),
                   ),
                   maxLines: 2,
                 ),
@@ -744,13 +857,19 @@ class _DriverDetailScreenState extends State<DriverDetailScreen> {
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: const Text('Cancel'),
+              child: const Text('Cancel', style: TextStyle(color: AppColors.textSecondary)),
             ),
             ElevatedButton(
               onPressed: () {
                 _addBonus();
                 Navigator.of(context).pop();
               },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
               child: const Text('Save'),
             ),
           ],
@@ -772,23 +891,38 @@ class _DriverDetailScreenState extends State<DriverDetailScreen> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Add New Cash Advance'),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 TextField(
                   controller: _amountController,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: 'Amount (₱)',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(color: AppColors.primary, width: 2),
+                    ),
                   ),
                   keyboardType: TextInputType.number,
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 16),
                 TextField(
                   controller: _dateController,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: 'Request Date',
-                    suffixIcon: Icon(Icons.calendar_today),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(color: AppColors.primary, width: 2),
+                    ),
+                    suffixIcon: const Icon(Icons.calendar_today, color: AppColors.primary),
                   ),
                   readOnly: true,
                   onTap: () async {
@@ -797,6 +931,16 @@ class _DriverDetailScreenState extends State<DriverDetailScreen> {
                       initialDate: _selectedDate,
                       firstDate: DateTime(2000),
                       lastDate: DateTime(2101),
+                      builder: (context, child) {
+                        return Theme(
+                          data: Theme.of(context).copyWith(
+                            colorScheme: const ColorScheme.light(
+                              primary: AppColors.primary,
+                            ),
+                          ),
+                          child: child!,
+                        );
+                      },
                     );
                     if (pickedDate != null) {
                       _selectedDate = pickedDate;
@@ -804,11 +948,18 @@ class _DriverDetailScreenState extends State<DriverDetailScreen> {
                     }
                   },
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 16),
                 DropdownButtonFormField<String>(
                   value: _selectedCashAdvanceStatus,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: 'Status',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(color: AppColors.primary, width: 2),
+                    ),
                   ),
                   items: const [
                     DropdownMenuItem(value: 'Pending', child: Text('Pending')),
@@ -820,11 +971,18 @@ class _DriverDetailScreenState extends State<DriverDetailScreen> {
                     _selectedCashAdvanceStatus = value!;
                   },
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 16),
                 TextField(
                   controller: _descriptionController,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: 'Description',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(color: AppColors.primary, width: 2),
+                    ),
                   ),
                   maxLines: 2,
                 ),
@@ -836,13 +994,19 @@ class _DriverDetailScreenState extends State<DriverDetailScreen> {
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: const Text('Cancel'),
+              child: const Text('Cancel', style: TextStyle(color: AppColors.textSecondary)),
             ),
             ElevatedButton(
               onPressed: () {
                 _addCashAdvance();
                 Navigator.of(context).pop();
               },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
               child: const Text('Save'),
             ),
           ],
@@ -980,24 +1144,51 @@ class _DetailListScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         title: Text('$title - $driverName'),
-        backgroundColor: const Color(0xFF2F27CE),
+        backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
+        elevation: 0,
       ),
       body: data.isEmpty
-          ? Center(child: Text(emptyMessage))
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.info_outline,
+                    size: 64,
+                    color: AppColors.textSecondary.withOpacity(0.5),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    emptyMessage,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            )
           : ListView.builder(
               padding: const EdgeInsets.all(16),
               itemCount: data.length,
               itemBuilder: (context, index) {
                 return Card(
                   margin: const EdgeInsets.only(bottom: 12),
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                   child: itemBuilder(context, data[index]),
                 );
               },
             ),
-      floatingActionButton: actionButton, // Add this line
+      floatingActionButton: actionButton != null
+          ? actionButton
+          : null,
     );
   }
 }
