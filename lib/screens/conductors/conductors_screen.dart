@@ -310,6 +310,7 @@ class _ConductorsScreenState extends State<ConductorsScreen> with SingleTickerPr
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFFBFBFE), // Use background color from your scheme
       appBar: AppBar(
         title: const Text(
           'Conductors Management',
@@ -328,6 +329,10 @@ class _ConductorsScreenState extends State<ConductorsScreen> with SingleTickerPr
             Tab(text: 'Assignments'),
           ],
           labelColor: Colors.white,
+          unselectedLabelColor: const Color(0xFFDEDCFF), // Add this for visibility
+          indicatorSize: TabBarIndicatorSize.tab,
+          labelStyle: const TextStyle(fontWeight: FontWeight.w500),
+          unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w400),
         ),
       ),
       floatingActionButton: FloatingActionButton(
