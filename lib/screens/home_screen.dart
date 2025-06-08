@@ -115,18 +115,16 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFBFBFE), // --background
+      backgroundColor: const Color(0xFFF8F9FD),
       appBar: AppBar(
-        title: const Text(
-          'Bus Management',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w500,
-          ),
+        title: Image.asset(
+          'assets/images/logo2.png',
+          width: 200,
+          height: 150,
+          fit: BoxFit.contain,
         ),
-        backgroundColor: const Color(0xFF2F27CE), // --primary
+        backgroundColor: const Color(0xFF2F27CE),
         elevation: 0,
-        // Remove existing actions and add drawer menu icon
         leading: Builder(
           builder: (context) => IconButton(
             icon: const Icon(Icons.menu, color: Colors.white),
@@ -136,7 +134,6 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
       ),
-      // Add drawer/sidebar
       drawer: Drawer(
         child: Column(
           children: [
@@ -147,19 +144,12 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Center(
                 child: Row(
                   children: [
-                    const Icon(
-                      Icons.directions_bus,
-                      color: Colors.white,
-                      size: 30,
-                    ),
-                    const SizedBox(width: 10),
-                    const Text(
-                      'Bus Management',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 22,
-                        fontWeight: FontWeight.w500,
-                      ),
+                    // Replace text with logo image
+                    Image.asset(
+                      'assets/images/logo2.png',
+                      width: 100,
+                      height: 100,
+                      fit: BoxFit.contain,
                     ),
                   ],
                 ),
@@ -195,7 +185,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   Container(
                     padding: const EdgeInsets.fromLTRB(20, 24, 20, 30),
                     decoration: const BoxDecoration(
-                      color: Color(0xFF2F27CE), // --primary
+                      color: Color(0xFF2F27CE),
                       borderRadius: BorderRadius.only(
                         bottomLeft: Radius.circular(20),
                         bottomRight: Radius.circular(20),
@@ -214,7 +204,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         const SizedBox(height: 4),
                         const Text(
-                          'Here\'s your fleet overview',
+                          'Dashboard Overview',
                           style: TextStyle(
                             fontSize: 14,
                             color: Colors.white70,
@@ -224,46 +214,13 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                   
-                  // Overview Panels
+                  // Main Dashboard Content
                   Padding(
-                    padding: const EdgeInsets.all(16.0),
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          'Fleet Status',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w600,
-                            color: Color(0xFF050315),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        
-                        // Active Drivers & Total Buses
-                        Row(
-                          children: [
-                            Expanded(
-                              child: _buildMetricCard(
-                                title: 'Active Drivers',
-                                value: _activeDrivers.toString(),
-                                icon: Icons.people,
-                                iconColor: const Color(0xFF2F27CE),
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: _buildMetricCard(
-                                title: 'Total Buses',
-                                value: _totalBuses.toString(),
-                                icon: Icons.directions_bus,
-                                iconColor: const Color(0xFF433BFF),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 24),
-                        
+                        // Financial Cards Section
                         const Text(
                           'Financial Overview',
                           style: TextStyle(
@@ -274,7 +231,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         const SizedBox(height: 16),
                         
-                        // Revenue & Expenses
+                        // Monthly Revenue & Expenses
                         Row(
                           children: [
                             Expanded(
@@ -285,7 +242,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 iconColor: Colors.green,
                               ),
                             ),
-                            const SizedBox(width: 12),
+                            const SizedBox(width: 16),
                             Expanded(
                               child: _buildMetricCard(
                                 title: 'Monthly Expenses',
@@ -296,7 +253,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 16),
                         
                         // Net Profit
                         _buildMetricCard(
@@ -306,103 +263,11 @@ class _HomeScreenState extends State<HomeScreen> {
                           iconColor: _netProfit >= 0 ? Colors.green : Colors.red,
                           fullWidth: true,
                         ),
-                        const SizedBox(height: 24),
-                        
-                        // Trip Summary
-                        const Text(
-                          'Trip Summary',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w600,
-                            color: Color(0xFF050315),
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(8),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.grey.withOpacity(0.1),
-                                spreadRadius: 1,
-                                blurRadius: 4,
-                                offset: const Offset(0, 1),
-                              ),
-                            ],
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  _buildTripSummaryItem(
-                                    title: 'Completed',
-                                    count: _completedTrips,
-                                    icon: Icons.check_circle,
-                                    color: Colors.green,
-                                  ),
-                                  _buildTripSummaryItem(
-                                    title: 'Upcoming',
-                                    count: _upcomingTrips,
-                                    icon: Icons.schedule,
-                                    color: const Color(0xFF2F27CE),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 12),
-                              ElevatedButton(
-                                onPressed: () {
-                                  // Navigate to detailed trip view
-                                },
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFFDEDCFF),
-                                  foregroundColor: const Color(0xFF2F27CE),
-                                  elevation: 0,
-                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(6),
-                                  ),
-                                ),
-                                child: const Text('View Trip Details'),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 24),
                         
                         // Upcoming Payouts
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text(
-                              'Upcoming Payouts',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w600,
-                                color: Color(0xFF050315),
-                              ),
-                            ),
-                            TextButton(
-                              onPressed: () {
-                                // View all payouts
-                              },
-                              style: TextButton.styleFrom(
-                                foregroundColor: const Color(0xFF2F27CE),
-                              ),
-                              child: const Text('View All'),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        ..._upcomingPayouts.map((payout) => _buildPayoutItem(payout)),
-                        
-                        // Navigation Section - Main Features
-                        const SizedBox(height: 24),
+                        const SizedBox(height: 32),
                         const Text(
-                          'Quick Access',
+                          'Upcoming Payouts',
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w600,
@@ -410,74 +275,70 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ),
                         const SizedBox(height: 16),
-                        // Improved Quick Access layout
-                        SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: Row(
-                            children: [
-                              _buildQuickAccessButton(
-                                icon: Icons.payments,
-                                label: 'Salary & Payroll',
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(builder: (context) => const SalaryPayrollScreen()),
-                                  );
-                                },
-                              ),
-                              const SizedBox(width: 16),
-                              _buildQuickAccessButton(
-                                icon: Icons.directions_bus,
-                                label: 'Buses',
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(builder: (context) => const BusUnitsScreen()),
-                                  );
-                                },
-                              ),
-                              const SizedBox(width: 16),
-                              _buildQuickAccessButton(
-                                icon: Icons.person,
-                                label: 'Drivers',
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(builder: (context) => const DriversScreen()),
-                                  );
-                                },
-                              ),
-                              const SizedBox(width: 16),
-                              _buildQuickAccessButton(
-                                icon: Icons.person_add,
-                                label: 'Conductors',
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(builder: (context) => const ConductorsScreen()),
-                                  );
-                                },
-                              ),
-                              const SizedBox(width: 16),
-                              _buildQuickAccessButton(
-                                icon: Icons.people,
-                                label: 'Employees',
-                                onTap: () {
-                                  // Navigate to Employees page
-                                },
-                              ),
-                              const SizedBox(width: 16),
-                              _buildQuickAccessButton(
-                                icon: Icons.assignment,
-                                label: 'Assignments',
-                                onTap: () {
-                                  // Navigate to Assignments page
-                                },
-                              ),
-                            ],
+                        ..._upcomingPayouts.map((payout) => _buildPayoutItem(payout)),
+                        
+                        // Quick Access Navigation
+                        const SizedBox(height: 32),
+                        const Text(
+                          'Management',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF050315),
                           ),
                         ),
-                        const SizedBox(height: 24),
+                        const SizedBox(height: 16),
+                        
+                        // Grid layout for management cards
+                        GridView.count(
+                          crossAxisCount: 2,
+                          crossAxisSpacing: 16,
+                          mainAxisSpacing: 16,
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          children: [
+                            _buildManagementCard(
+                              title: 'Salary & Payroll',
+                              icon: Icons.payments,
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (context) => const SalaryPayrollScreen()),
+                                );
+                              },
+                            ),
+                            _buildManagementCard(
+                              title: 'Buses',
+                              icon: Icons.directions_bus,
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (context) => const BusUnitsScreen()),
+                                );
+                              },
+                            ),
+                            _buildManagementCard(
+                              title: 'Drivers',
+                              icon: Icons.person,
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (context) => const DriversScreen()),
+                                );
+                              },
+                            ),
+                            _buildManagementCard(
+                              title: 'Conductors',
+                              icon: Icons.person_add,
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (context) => const ConductorsScreen()),
+                                );
+                              },
+                            ),
+                          ],
+                        ),
                       ],
                     ),
                   ),
@@ -487,6 +348,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  // Updated metric card with improved design
   Widget _buildMetricCard({
     required String title,
     required String value,
@@ -496,16 +358,16 @@ class _HomeScreenState extends State<HomeScreen> {
   }) {
     return Container(
       width: fullWidth ? double.infinity : null,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            spreadRadius: 1,
-            blurRadius: 4,
-            offset: const Offset(0, 1),
+            color: Colors.grey.withOpacity(0.08),
+            spreadRadius: 0,
+            blurRadius: 10,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
@@ -515,24 +377,24 @@ class _HomeScreenState extends State<HomeScreen> {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
                   color: iconColor.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(
                   icon,
                   color: iconColor,
-                  size: 20,
+                  size: 22,
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 12),
               Expanded(
                 child: Text(
                   title,
                   style: const TextStyle(
-                    fontSize: 14,
-                    color: Color(0xFF050315),
+                    fontSize: 15,
+                    color: Color(0xFF6B7280),
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -543,9 +405,9 @@ class _HomeScreenState extends State<HomeScreen> {
           Text(
             value,
             style: const TextStyle(
-              fontSize: 22,
+              fontSize: 24,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF050315),
+              color: Color(0xFF1F2937),
             ),
           ),
         ],
@@ -553,56 +415,25 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildTripSummaryItem({
-    required String title,
-    required int count,
-    required IconData icon,
-    required Color color,
-  }) {
-    return Row(
-      children: [
-        Icon(icon, color: color, size: 20),
-        const SizedBox(width: 8),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              style: const TextStyle(
-                fontSize: 12,
-                color: Color(0xFF050315),
-                fontWeight: FontWeight.w400,
-              ),
-            ),
-            Text(
-              count.toString(),
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF050315),
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
+  // Updated payout item with improved design
   Widget _buildPayoutItem(Map<String, dynamic> payout) {
     final formatter = DateFormat('MMM dd, yyyy');
+    final daysLeft = payout['dueDate'].difference(DateTime.now()).inDays;
+    final isUrgent = daysLeft <= 3;
     
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(12),
+        border: isUrgent ? Border.all(color: Colors.red.shade200) : null,
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            spreadRadius: 1,
-            blurRadius: 4,
-            offset: const Offset(0, 1),
+            color: Colors.grey.withOpacity(0.08),
+            spreadRadius: 0,
+            blurRadius: 10,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
@@ -611,12 +442,12 @@ class _HomeScreenState extends State<HomeScreen> {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: const Color(0xFFDEDCFF),
-              borderRadius: BorderRadius.circular(8),
+              color: isUrgent ? Colors.red.shade50 : const Color(0xFFDEDCFF),
+              borderRadius: BorderRadius.circular(10),
             ),
-            child: const Icon(
-              Icons.account_balance_wallet,
-              color: Color(0xFF2F27CE),
+            child: Icon(
+              isUrgent ? Icons.warning_amber_rounded : Icons.account_balance_wallet,
+              color: isUrgent ? Colors.red : const Color(0xFF2F27CE),
               size: 20,
             ),
           ),
@@ -627,18 +458,18 @@ class _HomeScreenState extends State<HomeScreen> {
               children: [
                 Text(
                   payout['title'],
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                    color: Color(0xFF050315),
+                    fontWeight: FontWeight.w600,
+                    color: isUrgent ? Colors.red.shade800 : const Color(0xFF1F2937),
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   'Due: ${formatter.format(payout['dueDate'])}',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey,
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: isUrgent ? Colors.red.shade400 : Colors.grey.shade600,
                   ),
                 ),
               ],
@@ -646,10 +477,10 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           Text(
             '\$${NumberFormat('#,##0.00').format(payout['amount'])}',
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: Color(0xFF050315),
+              fontWeight: FontWeight.w700,
+              color: isUrgent ? Colors.red.shade800 : const Color(0xFF1F2937),
             ),
           ),
         ],
@@ -657,45 +488,56 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildQuickAccessButton({
+  // New management card for grid layout
+  Widget _buildManagementCard({
+    required String title,
     required IconData icon,
-    required String label,
     required VoidCallback onTap,
   }) {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 56,
-            height: 56,
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: const Color(0xFFDEDCFF),
-              borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.08),
+              spreadRadius: 0,
+              blurRadius: 10,
+              offset: const Offset(0, 2),
             ),
-            child: Icon(
-              icon,
-              size: 24,
-              color: const Color(0xFF2F27CE),
-            ),
-          ),
-          const SizedBox(height: 8),
-          SizedBox(
-            width: 70,
-            child: Text(
-              label,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
-                color: Color(0xFF050315),
+          ],
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFDEDCFF),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                icon,
+                size: 32,
+                color: const Color(0xFF2F27CE),
               ),
             ),
-          ),
-        ],
+            const SizedBox(height: 16),
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF1F2937),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
